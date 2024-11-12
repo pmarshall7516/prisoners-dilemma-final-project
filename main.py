@@ -4,12 +4,12 @@ import sys
 import time
 from agent import (Agent, UserAgent, RandomAgent, AlwaysSplitAgent, 
                 AlwaysStealAgent, TitForTatAgent, RhythmicAgent , ProbabilisticAgent,
-                PredictionAgent)
+                PredictionAgent, MLPredictionAgent)
 
 MAX_SCORE = 5
 SPLIT_SCORE = 3
-DISAGREE_SCORE = 0
-BOTH_STEAL_SCORE = 1
+DISAGREE_SCORE = -3
+BOTH_STEAL_SCORE = -5
 MAJOR_ITERATIONS = 500
 
 def evaluate_choices(c1, c2):
@@ -34,6 +34,7 @@ def select_agent():
     5 - RhythmicAgent (splits or steals using a pattern)
     6 - ProbablisticAgent (splits based on a probability)
     7 - PredictionAgent (Uses opponent pattern history to make decisions)
+    8 - MLAgent - Uses logistic regression to inform choice
     """)
     
     while True:
@@ -53,6 +54,8 @@ def select_agent():
                 return ProbabilisticAgent()
             elif choice == 7:
                 return PredictionAgent()
+            elif choice == 8:
+                return MLPredictionAgent()
             else:
                 print("Invalid choice. Please enter a number 1-5.")
         except ValueError:
@@ -97,7 +100,7 @@ def user_game(iterations=10):
 def major_simulation(iterations=MAJOR_ITERATIONS):
     agents = [RandomAgent(), AlwaysSplitAgent(), AlwaysStealAgent(), 
               TitForTatAgent(), RhythmicAgent(), ProbabilisticAgent(),
-              PredictionAgent()]
+              PredictionAgent(), MLPredictionAgent()]
     
     print(f"Running Simulation for {iterations} Iterations...")
     for a1 in agents: # Main agent
@@ -141,10 +144,10 @@ def minor_simulation(iterations=10):
 
     print("First Agent Selection...")
     a1 = select_agent()
-    time.sleep(0.5)
+    time.sleep(0.1)
     print("Second Agent Selection...")
     a2 = select_agent()
-    time.sleep(0.5)
+    time.sleep(0.1)
     
     if isinstance(a1, Agent) and isinstance(a2, Agent):
         # Game loop
@@ -166,11 +169,11 @@ def minor_simulation(iterations=10):
 
             a1.update_score(s1)
             a2.update_score(s2)
-            time.sleep(0.5)
+            #time.sleep(0.5)
 
             print(f"{a1.name}'s score: {a1.score}")
             print(f"{a2.name}'s score: {a2.score}")
-            time.sleep(1.5)
+            #time.sleep(1.5)
 
     # Final scores
     print("\n--- Game Over ---")
