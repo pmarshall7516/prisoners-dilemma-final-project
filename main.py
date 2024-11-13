@@ -7,9 +7,9 @@ from agent import (Agent, UserAgent, RandomAgent, AlwaysSplitAgent,
                 PredictionAgent, GrudgeAgent)
 
 MAX_SCORE = 5
-SPLIT_SCORE = 3
-DISAGREE_SCORE = 0
-BOTH_STEAL_SCORE = 1
+SPLIT_SCORE = 4
+DISAGREE_SCORE = -2
+BOTH_STEAL_SCORE = -3
 MAJOR_ITERATIONS = 500
 
 def evaluate_choices(c1, c2):
@@ -99,24 +99,25 @@ def user_game(iterations=10):
     
 def major_simulation(iterations=MAJOR_ITERATIONS, all=True):
     # Instantiate each agent type
-    agents = [
-        RandomAgent(),
-        AlwaysSplitAgent(),
-        AlwaysStealAgent(),
-        TitForTatAgent(),
-        RhythmicAgent(sequence_num=3, majority_split=True),
-        ProbabilisticAgent(prob=0.75),
-        PredictionAgent(pattern_length=2),
-        GrudgeAgent()
-    ]
-
-    specialized = [
-        TitForTatAgent(),
-        RhythmicAgent(sequence_num=3, majority_split=True),
-        ProbabilisticAgent(prob=0.75),
-        PredictionAgent(pattern_length=2),
-        GrudgeAgent()
-    ]
+    if all:
+        agents = [
+            RandomAgent(),
+            AlwaysSplitAgent(),
+            AlwaysStealAgent(),
+            TitForTatAgent(),
+            RhythmicAgent(sequence_num=3, majority_split=True),
+            ProbabilisticAgent(prob=0.75),
+            PredictionAgent(pattern_length=2),
+            GrudgeAgent()
+        ]
+    else:
+        agents = [
+            TitForTatAgent(),
+            RhythmicAgent(sequence_num=3, majority_split=True),
+            ProbabilisticAgent(prob=0.75),
+            PredictionAgent(pattern_length=2),
+            GrudgeAgent()
+        ]
 
     print(f"Running Simulation for {iterations} Iterations...")
 
@@ -174,6 +175,7 @@ def major_simulation(iterations=MAJOR_ITERATIONS, all=True):
     
     # Determine the top agents based on each performance metric
     top_average_score_agent = max(agents, key=lambda agent: agent.score / len(agents))
+    bottom_average_score_agent = min(agents, key=lambda agent: agent.score / len(agents))
     top_win_rate_agent = max(agents, key=lambda agent: agent.wins / len(agents) * 100)
 
     print("\nResults Summary:")
@@ -183,6 +185,7 @@ def major_simulation(iterations=MAJOR_ITERATIONS, all=True):
     if top_pair[0] and top_pair[1]:
         print(f"Highest Combined Score Pair: {top_pair[0].name} and {top_pair[1].name} - Combined Score: {highest_combined_score}")
 
+    print(f"Worst Agent by Average Score: {bottom_average_score_agent.name} - Score: {bottom_average_score_agent.score / len(agents):.2f}")
 
 def minor_simulation(iterations=10):
     """Simulates a prisoner's dilemma game for a set number 
@@ -237,7 +240,7 @@ def main():
             print("Invalid input. Using default of 10 iterations.")
             user_game()
     elif mode == "-s":
-        major_simulation()
+        major_simulation(MAJOR_ITERATIONS, False)
     elif mode == "-t":
         try:
             iters = input("How many iterations would you like this game to last? (Default 10): ")
