@@ -150,3 +150,47 @@ class GrudgeAgent(Agent):
                 self.grudge = True
         choice = 1 if self.grudge else 0
         return choice
+    
+class MLPredictionAgent(Agent):
+    def __init__(self):
+        super().__init__(name="ML Prediction Agent")
+        self.model = LogisticRegression()
+        self.features = []
+        self.labels = []
+
+    def choose(self):
+        """Predicts the opponent's next move using a machine learning model trained on historical data,
+           including both the opponent's moves and the agent's own past guesses as features."""
+
+        # Gather data if there are at least four moves to form features and labels
+        if len(self.own_history) >= 4:
+            # Last three moves of both opponent and agent as features
+            feature = self.history[-4:-1] + self.guess_history[-4:-1]
+            self.features.append(feature)
+            self.labels.append(self.history[-1])  # Next opponent action as the label
+
+            # Convert lists to numpy arrays for training
+            X = np.array(self.features)
+            y = np.array(self.labels)
+
+            # Only retrain if we have at least two different classes
+            if len(set(y)) > 1:
+                self.model.fit(X, y)
+
+                # Make a prediction based on the latest sequence of moves
+                prediction = self.model.predict([self.history[-3:] + self.guess_history[-3:]])[0]
+                self.guess_history.append(prediction)  # Track this guess for the next round
+                 #if the opponent is going to split, we steal
+                if prediction == 0:
+                    return 1
+                # if they steal, we are going to split to maximize our score
+                else:
+                    return 0
+            else:
+                # Not enough class diversity, default to "split"
+                self.guess_history.append(0)
+                return random.choice([0, 1])
+        else:
+            # Not enough data yet, so split by default
+            self.guess_history.append(0)
+            return random.choice([0, 1])
