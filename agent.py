@@ -232,3 +232,12 @@ class QLearningAgent(Agent):
         self.exploration_rate = exploration_rate # Epsilon
         self.last_state = None
         self.last_action = None
+
+    def choose(self):
+        return 0
+    
+    def clear_memory(self):
+        super().clear_memory()
+        self.q_table = {}
+        self.last_action = None
+        self.last_state = None
