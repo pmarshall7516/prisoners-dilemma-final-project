@@ -2,25 +2,10 @@
 
 import sys
 import time
-from agent import (Agent, UserAgent, RandomAgent, AlwaysSplitAgent, 
+import argparse
+from agent import (evaluate_choices, MAX_SCORE, SPLIT_SCORE, DISAGREE_SCORE, BOTH_STEAL_SCORE, MAJOR_ITERATIONS, Agent, UserAgent, RandomAgent, AlwaysSplitAgent, 
                 AlwaysStealAgent, TitForTatAgent, RhythmicAgent , ProbabilisticAgent,
-                PredictionAgent, GrudgeAgent)
-
-MAX_SCORE = 5
-SPLIT_SCORE = 4
-DISAGREE_SCORE = -2
-BOTH_STEAL_SCORE = -3
-MAJOR_ITERATIONS = 500
-
-def evaluate_choices(c1, c2):
-    if c1 == 0 and c2 == 0:  # Both split
-        return SPLIT_SCORE, SPLIT_SCORE
-    elif c1 == 1 and c2 == 0:  # Agent 1 steals, Agent 2 splits
-        return MAX_SCORE, DISAGREE_SCORE
-    elif c1 == 0 and c2 == 1:  # Agent 1 splits, Agent 2 steals
-        return DISAGREE_SCORE, MAX_SCORE
-    else:  # Both steal
-        return BOTH_STEAL_SCORE, BOTH_STEAL_SCORE
+                PredictionAgent, GrudgeAgent, MLPredictionAgent, QLearningAgent)
     
 def select_agent():
     """Displays a menu for selecting an agent and returns an instance of the chosen agent."""
@@ -35,6 +20,8 @@ def select_agent():
     6 - ProbablisticAgent (splits based on a probability)
     7 - PredictionAgent (uses opponent pattern history to make decisions)
     8 - GrudgeAgent (splits until opponent deffects, then deffects every time)
+    9 - ML Prediction Agent (more advanced prediction agent using Logit)
+    10 - Q-Learning Agent (uses Q-Learning to make predictions and take action)
     """)
     
     while True:
@@ -56,6 +43,10 @@ def select_agent():
                 return PredictionAgent()
             elif choice == 8:
                 return GrudgeAgent()
+            elif choice == 9:
+                return MLPredictionAgent()
+            elif choice == 10:
+                return QLearningAgent()
             else:
                 print("Invalid choice. Please enter a number 1-5.")
         except ValueError:
@@ -108,7 +99,9 @@ def major_simulation(iterations=MAJOR_ITERATIONS, all=True):
             RhythmicAgent(sequence_num=3, majority_split=True),
             ProbabilisticAgent(prob=0.75),
             PredictionAgent(pattern_length=2),
-            GrudgeAgent()
+            GrudgeAgent(),
+            MLPredictionAgent(),
+            QLearningAgent()
         ]
     else:
         agents = [
@@ -116,7 +109,9 @@ def major_simulation(iterations=MAJOR_ITERATIONS, all=True):
             RhythmicAgent(sequence_num=3, majority_split=True),
             ProbabilisticAgent(prob=0.75),
             PredictionAgent(pattern_length=2),
-            GrudgeAgent()
+            GrudgeAgent(),
+            MLPredictionAgent(),
+            QLearningAgent()
         ]
 
     print(f"Running Simulation for {iterations} Iterations...")
@@ -126,6 +121,8 @@ def major_simulation(iterations=MAJOR_ITERATIONS, all=True):
     
     for a1 in agents:  # Main agent
         opponent_score_differences = []
+        best_partner_score = 0
+        best_partner = None
 
         for a2 in agents:  # Opposing agent (including self)
             opponent_round_score = 0
@@ -164,6 +161,12 @@ def major_simulation(iterations=MAJOR_ITERATIONS, all=True):
                 if main_round_score > opponent_round_score:
                     a1.wins += 1
 
+                if combined_score > best_partner_score:
+                    best_partner_score = combined_score
+                    best_partner = a2.name
+
+            
+
         # Calculate average metrics for the agent
         average_score = a1.score / len(agents)  # Include self-match in the average
         win_percentage = (a1.wins / len(agents)) * 100
@@ -172,6 +175,7 @@ def major_simulation(iterations=MAJOR_ITERATIONS, all=True):
         print(f"{a1.name} - Average Score: {average_score:.2f}, "
               f"Win Percentage: {win_percentage:.2f}%, "
               f"Average Opponent Score Difference: {average_score_difference:.2f}")
+        print(f"    Best Partner for {a1.name}: {best_partner} with a combined score of {best_partner_score}")
     
     # Determine the top agents based on each performance metric
     top_average_score_agent = max(agents, key=lambda agent: agent.score / len(agents))

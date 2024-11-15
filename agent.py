@@ -1,6 +1,24 @@
 import random
+from sklearn.linear_model import LogisticRegression
+import numpy as np
 
 # 0 = split, 1 = steal
+MAX_SCORE = 5
+SPLIT_SCORE = 3
+DISAGREE_SCORE = 0
+BOTH_STEAL_SCORE = 1
+MAJOR_ITERATIONS = 100
+
+# Helper Methods
+def evaluate_choices(c1, c2):
+    if c1 == 0 and c2 == 0:  # Both split
+        return SPLIT_SCORE, SPLIT_SCORE
+    elif c1 == 1 and c2 == 0:  # Agent 1 steals, Agent 2 splits
+        return MAX_SCORE, DISAGREE_SCORE
+    elif c1 == 0 and c2 == 1:  # Agent 1 splits, Agent 2 steals
+        return DISAGREE_SCORE, MAX_SCORE
+    else:  # Both steal
+        return BOTH_STEAL_SCORE, BOTH_STEAL_SCORE
 
 class Agent:
     def __init__(self, name="Agent"):
@@ -28,7 +46,6 @@ class Agent:
     def clear_memory(self):
         self.opponent_history = []
         self.own_history = []
-        
 
 class UserAgent(Agent):
     def __init__(self):
@@ -150,6 +167,10 @@ class GrudgeAgent(Agent):
                 self.grudge = True
         choice = 1 if self.grudge else 0
         return choice
+
+    def clear_memory(self):
+        super().clear_memory()
+        self.grude = False
     
 class MLPredictionAgent(Agent):
     def __init__(self):
@@ -163,11 +184,11 @@ class MLPredictionAgent(Agent):
            including both the opponent's moves and the agent's own past guesses as features."""
 
         # Gather data if there are at least four moves to form features and labels
-        if len(self.own_history) >= 4:
+        if len(self.opponent_history) >= 4:
             # Last three moves of both opponent and agent as features
-            feature = self.history[-4:-1] + self.guess_history[-4:-1]
+            feature = self.opponent_history[-4:-1] + self.own_history[-4:-1]
             self.features.append(feature)
-            self.labels.append(self.history[-1])  # Next opponent action as the label
+            self.labels.append(self.opponent_history[-1])  # Next opponent action as the label
 
             # Convert lists to numpy arrays for training
             X = np.array(self.features)
@@ -178,8 +199,8 @@ class MLPredictionAgent(Agent):
                 self.model.fit(X, y)
 
                 # Make a prediction based on the latest sequence of moves
-                prediction = self.model.predict([self.history[-3:] + self.guess_history[-3:]])[0]
-                self.guess_history.append(prediction)  # Track this guess for the next round
+                prediction = self.model.predict([self.opponent_history[-3:] + self.own_history[-3:]])[0]
+                self.own_history.append(prediction)  # Track this guess for the next round
                  #if the opponent is going to split, we steal
                 if prediction == 0:
                     return 1
@@ -188,9 +209,26 @@ class MLPredictionAgent(Agent):
                     return 0
             else:
                 # Not enough class diversity, default to "split"
-                self.guess_history.append(0)
+                self.own_history.append(0)
                 return random.choice([0, 1])
         else:
             # Not enough data yet, so split by default
-            self.guess_history.append(0)
+            self.own_history.append(0)
             return random.choice([0, 1])
+
+    def clear_memory(self):
+        super().clear_memory()
+        self.model = LogisticRegression()
+        self.features = []
+        self.labels = []
+
+
+class QLearningAgent(Agent):
+    def __init__(self, learning_rate=0.1, discount_factor=0.95, exploration_rate=0.2):
+        super().__init__(name="Q-Learning Agent")
+        self.q_table = {}  # Q-table initialized as a dictionary for state-action pairs
+        self.learning_rate = learning_rate # Alpha
+        self.discount_factor = discount_factor # Gamma
+        self.exploration_rate = exploration_rate # Epsilon
+        self.last_state = None
+        self.last_action = None
