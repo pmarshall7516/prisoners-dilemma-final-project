@@ -3,35 +3,55 @@ from sklearn.linear_model import LogisticRegression
 import numpy as np
 
 # 0 = split, 1 = steal
+MAX_SCORE = 5
+SPLIT_SCORE = 3
+DISAGREE_SCORE = 0
+BOTH_STEAL_SCORE = 1
+MAJOR_ITERATIONS = 100
+
+# Helper Methods
+def evaluate_choices(c1, c2):
+    if c1 == 0 and c2 == 0:  # Both split
+        return SPLIT_SCORE, SPLIT_SCORE
+    elif c1 == 1 and c2 == 0:  # Agent 1 steals, Agent 2 splits
+        return MAX_SCORE, DISAGREE_SCORE
+    elif c1 == 0 and c2 == 1:  # Agent 1 splits, Agent 2 steals
+        return DISAGREE_SCORE, MAX_SCORE
+    else:  # Both steal
+        return BOTH_STEAL_SCORE, BOTH_STEAL_SCORE
 
 class Agent:
     def __init__(self, name="Agent"):
         self.name = name
         self.score = 0
         self.wins = 0
-        self.previous_choice = None
         self.conquered = []
+        self.own_history = []
+        self.opponent_history = []
 
-    def choose(self, opponent_last_choice):
+    def choose(self):
         """Base method to make a choice in the prisoner's dilemma game.
         Should be overridden by child classes."""
         raise NotImplementedError("Subclasses should implement this method")
-    
+
     def update_score(self, score):
         """Updates the agent's score by adding the provided score value."""
         self.score += score
 
-    def get_previous_action(self):
-        return self.previous_choice
-    
-    def set_previous_action(self, pr):
-        self.previous_choice = pr
-    
+    def record_move(self, choice, opponent_choice):
+        """Records the agent's own choice and the opponent's last choice."""
+        self.own_history.append(choice)
+        self.opponent_history.append(opponent_choice)
+
+    def clear_memory(self):
+        self.opponent_history = []
+        self.own_history = []
+
 class UserAgent(Agent):
     def __init__(self):
-        super().__init__()
+        super().__init__(name="User Agent")
 
-    def choose(self, opponent_last_choice):
+    def choose(self):
         """Prompts the user to choose between split (0) or steal (1)."""
         while True:
             try:
@@ -47,142 +67,128 @@ class RandomAgent(Agent):
     def __init__(self):
         super().__init__(name="Random Agent")
 
-    def choose(self, opponent_last_choice):
+    def choose(self):
         """Randomly chooses between split (0) or steal (1)."""
         choice = random.choice([0, 1])
         return choice
-    
+
 class AlwaysSplitAgent(Agent):
     def __init__(self):
         super().__init__(name="Always Split Agent")
 
-    def choose(self, opponent_last_choice):
+    def choose(self):
         """Always chooses to split (0)."""
-        return 0
-    
+        choice = 0
+        return choice
+
 class AlwaysStealAgent(Agent):
     def __init__(self):
         super().__init__(name="Always Steal Agent")
 
-    def choose(self, opponent_last_choice):
+    def choose(self):
         """Always chooses to steal (1)."""
-        return 1
-    
+        choice = 1
+        return choice
+
 class TitForTatAgent(Agent):
     def __init__(self):
-        self.count = 0
         super().__init__(name="Tit-for-Tat Agent")
 
-    def choose(self, opponent_last_choice):
-        """Always chooses to cooperate on first turn, 
-        then replicates opponents previous move"""
-        if self.count == 0: 
-            self.count += 1
-            return 0
-        else: 
-            return opponent_last_choice
-        
+    def choose(self):
+        """Always chooses to cooperate on first turn, then mirrors opponent's previous move."""
+        choice = 0 if not self.own_history else self.opponent_history[-1]
+        return choice
+
 class RhythmicAgent(Agent):
     def __init__(self, sequence_num=3, majority_split=True):
-        self.majority_split = majority_split
-        self.sequence_num = sequence_num
-        self.count = 1
         super().__init__(name="Rhythmic Agent")
+        self.sequence_num = sequence_num
+        self.majority_split = majority_split
+        self.count = 1
 
-    def choose(self, opponent_last_choice):
-        """Splits or Steals every n-th iteration"""
+    def choose(self):
+        """Splits or Steals every n-th iteration."""
         is_nth_iteration = self.count % self.sequence_num == 0
+        choice = 1 if (self.majority_split and is_nth_iteration) else 0
+        if not self.majority_split:
+            choice = 0 if is_nth_iteration else 1
         self.count += 1
+        return choice
 
-        if self.majority_split:
-            # Split most of the time, steal on every n-th iteration
-            return 1 if is_nth_iteration else 0
-        else:
-            # Steal most of the time, split on every n-th iteration
-            return 0 if is_nth_iteration else 1
-        
 class ProbabilisticAgent(Agent):
     def __init__(self, prob=0.75):
-        self.probability = prob
         super().__init__(name="Probabilistic Agent")
+        self.probability = prob
 
-    def choose(self, opponent_last_choice):
-        return 0 if random.random() < self.probability else 1
-    
+    def choose(self):
+        choice = 0 if random.random() < self.probability else 1
+        return choice
+
 class PredictionAgent(Agent):
     def __init__(self, pattern_length=2):
-        self.history = []
-        self.pattern_length = pattern_length
         super().__init__(name="Prediction Agent")
+        self.pattern_length = pattern_length
 
-    def choose(self, opponent_last_choice):
+    def choose(self):
         """Predicts the opponent's next move based on the most frequent pattern in history."""
-        if opponent_last_choice is not None:
-            self.history.append(opponent_last_choice)
-        
-        # Predict the next move based on pattern
-        if len(self.history) >= self.pattern_length:
-            predicted_move = self.predict_next_move()
-        else:
-            predicted_move = 0  # Default to "Split" if not enough history
 
-        return predicted_move
+        if len(self.opponent_history) >= self.pattern_length:
+            choice = self.predict_next_move()
+        else:
+            choice = 0  # Default to "Split" if not enough history
+
+        return choice
 
     def predict_next_move(self):
         """Predicts the opponent's next move based on historical patterns."""
-        # Extract the most recent pattern
-        recent_pattern = tuple(self.history[-self.pattern_length:])
+        recent_pattern = tuple(self.opponent_history[-self.pattern_length:])
         pattern_counts = {}
 
-        # Count occurrences of each pattern in history
-        for i in range(len(self.history) - self.pattern_length):
-            pattern = tuple(self.history[i:i + self.pattern_length])
-            next_move = self.history[i + self.pattern_length] if i + self.pattern_length < len(self.history) else None
+        for i in range(len(self.opponent_history) - self.pattern_length):
+            pattern = tuple(self.opponent_history[i:i + self.pattern_length])
+            next_move = self.opponent_history[i + self.pattern_length] if i + self.pattern_length < len(self.opponent_history) else None
 
             if pattern == recent_pattern and next_move is not None:
-                if next_move not in pattern_counts:
-                    pattern_counts[next_move] = 0
-                pattern_counts[next_move] += 1
+                pattern_counts[next_move] = pattern_counts.get(next_move, 0) + 1
 
-        # If there is a pattern, choose the most frequent next move
         if pattern_counts:
-            predicted_move = max(pattern_counts, key=pattern_counts.get)
-            #print(f"Next Move: {predicted_move} based on pattern {recent_pattern}")
-            return predicted_move
+            return max(pattern_counts, key=pattern_counts.get)
 
-        # If no pattern is found, default to "Split" (0)
-        return 0
+        return 0  # Default to split if no pattern found
 
+class GrudgeAgent(Agent):
+    def __init__(self):
+        super().__init__(name="Grudge Agent")
+        self.grudge = False
 
+    def choose(self):
+        if self.opponent_history:
+            if self.opponent_history[-1] == 1:
+                self.grudge = True
+        choice = 1 if self.grudge else 0
+        return choice
 
-
+    def clear_memory(self):
+        super().clear_memory()
+        self.grude = False
+    
 class MLPredictionAgent(Agent):
     def __init__(self):
         super().__init__(name="ML Prediction Agent")
-        self.history = []  # Tracks opponent's past choices
-        self.guess_history = []  # Tracks the agent's own past guesses
         self.model = LogisticRegression()
         self.features = []
         self.labels = []
 
-    def choose(self, opponent_last_choice):
+    def choose(self):
         """Predicts the opponent's next move using a machine learning model trained on historical data,
            including both the opponent's moves and the agent's own past guesses as features."""
-        
-        # Append the opponent's and agent's last actions to history
-        if opponent_last_choice is not None:
-            self.history.append(opponent_last_choice)
-        
-        if len(self.guess_history) < len(self.history):
-            # Append a default action to the guess history if it's shorter than the opponent's history
-            self.guess_history.append(0)  # Default to split initially
 
         # Gather data if there are at least four moves to form features and labels
-        if len(self.history) >= 4:
+        if len(self.opponent_history) >= 4:
             # Last three moves of both opponent and agent as features
-            feature = self.history[-4:-1] + self.guess_history[-4:-1]
+            feature = self.opponent_history[-4:-1] + self.own_history[-4:-1]
             self.features.append(feature)
-            self.labels.append(self.history[-1])  # Next opponent action as the label
+            self.labels.append(self.opponent_history[-1])  # Next opponent action as the label
 
             # Convert lists to numpy arrays for training
             X = np.array(self.features)
@@ -193,8 +199,8 @@ class MLPredictionAgent(Agent):
                 self.model.fit(X, y)
 
                 # Make a prediction based on the latest sequence of moves
-                prediction = self.model.predict([self.history[-3:] + self.guess_history[-3:]])[0]
-                self.guess_history.append(prediction)  # Track this guess for the next round
+                prediction = self.model.predict([self.opponent_history[-3:] + self.own_history[-3:]])[0]
+                self.own_history.append(prediction)  # Track this guess for the next round
                  #if the opponent is going to split, we steal
                 if prediction == 0:
                     return 1
@@ -203,10 +209,26 @@ class MLPredictionAgent(Agent):
                     return 0
             else:
                 # Not enough class diversity, default to "split"
-                self.guess_history.append(0)
+                self.own_history.append(0)
                 return random.choice([0, 1])
         else:
             # Not enough data yet, so split by default
-            self.guess_history.append(0)
+            self.own_history.append(0)
             return random.choice([0, 1])
-    
+
+    def clear_memory(self):
+        super().clear_memory()
+        self.model = LogisticRegression()
+        self.features = []
+        self.labels = []
+
+
+class QLearningAgent(Agent):
+    def __init__(self, learning_rate=0.1, discount_factor=0.95, exploration_rate=0.2):
+        super().__init__(name="Q-Learning Agent")
+        self.q_table = {}  # Q-table initialized as a dictionary for state-action pairs
+        self.learning_rate = learning_rate # Alpha
+        self.discount_factor = discount_factor # Gamma
+        self.exploration_rate = exploration_rate # Epsilon
+        self.last_state = None
+        self.last_action = None
