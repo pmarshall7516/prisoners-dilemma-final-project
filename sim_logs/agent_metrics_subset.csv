@@ -1,0 +1,8 @@
+Agent,Average_Score,Win_Percentage,Average_Score_Difference,Best_Partner,Best_Partner_Score
+Tit-for-Tat Agent,266.85714285714283,0.0,-0.7142857142857143,Tit-for-Tat Agent,600
+Rhythmic Agent,228.28571428571428,57.14285714285714,-45.714285714285715,Q-Learning Agent,550
+Probabilistic Agent,205.0,28.57142857142857,-97.14285714285714,Prediction Agent,559
+Prediction Agent,224.42857142857142,0.0,-26.428571428571427,Tit-for-Tat Agent,600
+Grudge Agent,220.0,85.71428571428571,150.0,Probabilistic Agent,434
+ML Prediction Agent,224.42857142857142,71.42857142857143,63.57142857142857,Rhythmic Agent,496
+Q-Learning Agent,222.42857142857142,28.57142857142857,-37.142857142857146,Prediction Agent,591

@@ -224,18 +224,67 @@ class MLPredictionAgent(Agent):
 
 
 class QLearningAgent(Agent):
-    def __init__(self, learning_rate=0.1, discount_factor=0.95, exploration_rate=0.2):
+    def __init__(self, learning_rate=0.1, discount_factor=0.95, exploration_rate=0.2, history_states=5):
         super().__init__(name="Q-Learning Agent")
         self.q_table = {}  # Q-table initialized as a dictionary for state-action pairs
-        self.learning_rate = learning_rate # Alpha
-        self.discount_factor = discount_factor # Gamma
-        self.exploration_rate = exploration_rate # Epsilon
+        self.learning_rate = learning_rate  # Alpha
+        self.discount_factor = discount_factor  # Gamma
+        self.exploration_rate = exploration_rate  # Epsilon
         self.last_state = None
         self.last_action = None
-
+        self.history_states = history_states
+ 
+    def get_state(self, history_states):
+        """Encodes the last (history_states) opponent moves as the current state."""
+        if len(self.opponent_history) >= history_states:
+            return tuple(self.opponent_history[-history_states:])
+        else:
+            # If there are fewer than history_states moves, pad with splits (0)
+            return tuple([0] * (history_states - len(self.opponent_history)) + self.opponent_history)
+ 
     def choose(self):
-        return 0
-    
+        """Chooses an action based on the Q-learning policy (epsilon-greedy)."""
+        state = self.get_state(self.history_states)
+ 
+        # Initialize Q-values for this state if not present
+        if state not in self.q_table:
+            self.q_table[state] = [0, 0]  # Initialize Q-values for actions: [split, steal]
+ 
+        # Epsilon-greedy action selection
+        if random.random() < self.exploration_rate:
+            action = random.choice([0, 1])  # Explore: choose random action
+        else:
+            action = 0 if self.q_table[state][0] >= self.q_table[state][1] else 1  # Exploit: choose best action
+ 
+        # Save state and action for learning update
+        self.last_state = state
+        self.last_action = action
+ 
+        return action
+ 
+    def record_move(self, choice, opponent_choice):
+        """Records the agent's own choice and the opponent's last choice,
+           and updates Q-values immediately."""
+        super().record_move(choice, opponent_choice)
+        reward, _ = evaluate_choices(choice, opponent_choice)  # Get reward for the action
+ 
+        if self.last_state is not None and self.last_action is not None:
+            # Get the maximum Q-value for the next state
+            next_state = self.get_state(self.history_states)
+            if next_state not in self.q_table:
+                self.q_table[next_state] = [0, 0]  # Initialize Q-values for actions: [split, steal]
+            max_next_q = max(self.q_table[next_state])
+ 
+            # Update Q-value using the Q-learning formula
+            old_value = self.q_table[self.last_state][self.last_action]
+            self.q_table[self.last_state][self.last_action] = (
+                old_value + self.learning_rate * (reward + self.discount_factor * max_next_q - old_value)
+            )
+ 
+        # Update last state and action
+        self.last_state = self.get_state(self.history_states)
+        self.last_action = choice
+ 
     def clear_memory(self):
         super().clear_memory()
         self.q_table = {}

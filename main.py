@@ -2,7 +2,7 @@
 
 import sys
 import time
-import argparse
+import pandas as pd
 from agent import (evaluate_choices, MAX_SCORE, SPLIT_SCORE, DISAGREE_SCORE, BOTH_STEAL_SCORE, MAJOR_ITERATIONS, Agent, UserAgent, RandomAgent, AlwaysSplitAgent, 
                 AlwaysStealAgent, TitForTatAgent, RhythmicAgent , ProbabilisticAgent,
                 PredictionAgent, GrudgeAgent, MLPredictionAgent, QLearningAgent)
@@ -111,13 +111,16 @@ def major_simulation(iterations=MAJOR_ITERATIONS, all=True):
             PredictionAgent(pattern_length=2),
             GrudgeAgent(),
             MLPredictionAgent(),
-            #QLearningAgent()
+            QLearningAgent()
         ]
 
     print(f"Running Simulation for {iterations} Iterations...")
 
     highest_combined_score = 0
     top_pair = (None, None)
+
+    agent_metrics = []
+    pairwise_metrics = []
     
     for a1 in agents:  # Main agent
         opponent_score_differences = []
@@ -165,31 +168,63 @@ def major_simulation(iterations=MAJOR_ITERATIONS, all=True):
                     best_partner_score = combined_score
                     best_partner = a2.name
 
+                # Record pairwise data
+                pairwise_metrics.append({
+                    "Agent1": a1.name,
+                    "Agent2": a2.name,
+                    "Agent1_Score": main_round_score,
+                    "Agent2_Score": opponent_round_score,
+                    "Combined_Score": combined_score
+                })
+
             
 
         # Calculate average metrics for the agent
         average_score = a1.score / len(agents)  # Include self-match in the average
         win_percentage = (a1.wins / len(agents)) * 100
         average_score_difference = sum(opponent_score_differences) / len(opponent_score_differences)
+
+        agent_metrics.append({
+            "Agent": a1.name,
+            "Average_Score": average_score,
+            "Win_Percentage": win_percentage,
+            "Average_Score_Difference": average_score_difference,
+            "Best_Partner": best_partner,
+            "Best_Partner_Score": best_partner_score
+        })
         
-        print(f"{a1.name} - Average Score: {average_score:.2f}, "
-              f"Win Percentage: {win_percentage:.2f}%, "
-              f"Average Opponent Score Difference: {average_score_difference:.2f}")
-        print(f"    Best Partner for {a1.name}: {best_partner} with a combined score of {best_partner_score}")
+        # print(f"{a1.name} - Average Score: {average_score:.2f}, "
+        #       f"Win Percentage: {win_percentage:.2f}%, "
+        #       f"Average Opponent Score Difference: {average_score_difference:.2f}")
+        # print(f"    Best Partner for {a1.name}: {best_partner} with a combined score of {best_partner_score}")
+
     
+    # Create DataFrames
+    agent_df = pd.DataFrame(agent_metrics)
+    pairwise_df = pd.DataFrame(pairwise_metrics)
+
+    # Save or display the results
+    agent_df.to_csv(f"sim_logs/agent_metrics_{"all" if all else "subset"}.csv", index=False)
+    pairwise_df.to_csv(f"sim_logs/pairwise_metrics_{"all" if all else "subset"}.csv", index=False)
+
+    print("Agent Metrics:")
+    print(agent_df)
+    print("\nPairwise Metrics:")
+    print(pairwise_df)
+
     # Determine the top agents based on each performance metric
-    top_average_score_agent = max(agents, key=lambda agent: agent.score / len(agents))
-    bottom_average_score_agent = min(agents, key=lambda agent: agent.score / len(agents))
-    top_win_rate_agent = max(agents, key=lambda agent: agent.wins / len(agents) * 100)
+    top_average_score_agent = agent_df.loc[agent_df['Average_Score'].idxmax()]
+    top_win_rate_agent = agent_df.loc[agent_df['Win_Percentage'].idxmax()]
+    bottom_average_score_agent = agent_df.loc[agent_df['Average_Score'].idxmin()]
 
     print("\nResults Summary:")
-    print(f"Top Agent by Average Score: {top_average_score_agent.name} - Score: {top_average_score_agent.score / len(agents):.2f}")
-    print(f"Top Agent by Win Percentage: {top_win_rate_agent.name} - Win Percentage: {top_win_rate_agent.wins / len(agents) * 100:.2f}%")
+    print(f"Top Agent by Average Score: {top_average_score_agent['Agent']} - Score: {top_average_score_agent['Average_Score']:.2f}")
+    print(f"Top Agent by Win Percentage: {top_win_rate_agent['Agent']} - Win Percentage: {top_win_rate_agent['Win_Percentage']:.2f}%")
 
     if top_pair[0] and top_pair[1]:
         print(f"Highest Combined Score Pair: {top_pair[0].name} and {top_pair[1].name} - Combined Score: {highest_combined_score}")
 
-    print(f"Worst Agent by Average Score: {bottom_average_score_agent.name} - Score: {bottom_average_score_agent.score / len(agents):.2f}")
+    print(f"Worst Agent by Average Score: {bottom_average_score_agent['Agent']} - Score: {bottom_average_score_agent['Average_Score']:.2f}")
 
 def minor_simulation(iterations=10):
     """Simulates a prisoner's dilemma game for a set number 
@@ -234,24 +269,27 @@ def minor_simulation(iterations=10):
     print(f"Final {a2.name}'s Score: {a2.score}\n")
 
 def main():
-    mode = sys.argv[1]
-    
-    if mode == "-u":
-        try:
-            iters = input("How many iterations would you like this game to last? (Default 10): ")
-            user_game(int(iters) if iters else 10)
-        except ValueError:
-            print("Invalid input. Using default of 10 iterations.")
-            user_game()
-    elif mode == "-s":
-        major_simulation(MAJOR_ITERATIONS, False)
-    elif mode == "-t":
-        try:
-            iters = input("How many iterations would you like this game to last? (Default 10): ")
-            minor_simulation(int(iters) if iters else 10)
-        except ValueError:
-            print("Invalid input. Using default of 10 iterations.")
-            minor_simulation()
+    if len(sys.argv) < 2:
+        major_simulation(MAJOR_ITERATIONS, True)
+    else: 
+        mode = sys.argv[1]
+        
+        if mode == "-u":
+            try:
+                iters = input("How many iterations would you like this game to last? (Default 10): ")
+                user_game(int(iters) if iters else 10)
+            except ValueError:
+                print("Invalid input. Using default of 10 iterations.")
+                user_game()
+        elif mode == "-s":
+            major_simulation(MAJOR_ITERATIONS, False)
+        elif mode == "-t":
+            try:
+                iters = input("How many iterations would you like this game to last? (Default 10): ")
+                minor_simulation(int(iters) if iters else 10)
+            except ValueError:
+                print("Invalid input. Using default of 10 iterations.")
+                minor_simulation()
 
 if __name__ == "__main__":
     main()
