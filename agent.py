@@ -230,6 +230,9 @@ class QLearningAgent(Agent):
         self.learning_rate = learning_rate  # Alpha
         self.discount_factor = discount_factor  # Gamma
         self.exploration_rate = exploration_rate  # Epsilon
+        self.learning_rate = learning_rate  # Alpha
+        self.discount_factor = discount_factor  # Gamma
+        self.exploration_rate = exploration_rate  # Epsilon
         self.last_state = None
         self.last_action = None
         self.history_states = history_states
