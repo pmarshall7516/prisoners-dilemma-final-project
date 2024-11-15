@@ -111,7 +111,7 @@ def major_simulation(iterations=MAJOR_ITERATIONS, all=True):
             PredictionAgent(pattern_length=2),
             GrudgeAgent(),
             MLPredictionAgent(),
-            #QLearningAgent()
+            QLearningAgent()
         ]
 
     print(f"Running Simulation for {iterations} Iterations...")
