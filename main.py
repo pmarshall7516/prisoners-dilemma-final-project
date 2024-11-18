@@ -282,7 +282,10 @@ def main():
                 print("Invalid input. Using default of 10 iterations.")
                 user_game()
         elif mode == "-s":
-            major_simulation(MAJOR_ITERATIONS, False)
+            if sys.argv[2] == '-a':
+                major_simulation(MAJOR_ITERATIONS, True)
+            else:
+                major_simulation(MAJOR_ITERATIONS, False)
         elif mode == "-t":
             try:
                 iters = input("How many iterations would you like this game to last? (Default 10): ")
