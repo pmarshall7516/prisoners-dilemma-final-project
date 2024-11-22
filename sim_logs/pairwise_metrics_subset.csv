@@ -1,50 +1,50 @@
 Agent1,Agent2,Agent1_Score,Agent2_Score,Combined_Score
 Tit-for-Tat Agent,Tit-for-Tat Agent,300,300,600
-Tit-for-Tat Agent,Rhythmic Agent,267,267,534
-Tit-for-Tat Agent,Probabilistic Agent,273,273,546
+Tit-for-Tat Agent,Rhythmic Agent,168,168,336
+Tit-for-Tat Agent,Probabilistic Agent,196,196,392
 Tit-for-Tat Agent,Prediction Agent,300,300,600
 Tit-for-Tat Agent,Grudge Agent,300,300,600
-Tit-for-Tat Agent,ML Prediction Agent,135,140,275
-Tit-for-Tat Agent,Q-Learning Agent,293,293,586
-Rhythmic Agent,Tit-for-Tat Agent,267,267,534
-Rhythmic Agent,Rhythmic Agent,269,264,533
-Rhythmic Agent,Probabilistic Agent,269,254,523
-Rhythmic Agent,Prediction Agent,240,230,470
-Rhythmic Agent,Grudge Agent,43,363,406
-Rhythmic Agent,ML Prediction Agent,170,330,500
-Rhythmic Agent,Q-Learning Agent,340,210,550
-Probabilistic Agent,Tit-for-Tat Agent,266,266,532
-Probabilistic Agent,Rhythmic Agent,243,278,521
-Probabilistic Agent,Probabilistic Agent,259,269,528
-Probabilistic Agent,Prediction Agent,327,232,559
-Probabilistic Agent,Grudge Agent,25,400,425
-Probabilistic Agent,ML Prediction Agent,34,394,428
-Probabilistic Agent,Q-Learning Agent,281,276,557
+Tit-for-Tat Agent,ML Prediction Agent,-330,-322,-652
+Tit-for-Tat Agent,Q-Learning Agent,220,220,440
+Rhythmic Agent,Tit-for-Tat Agent,168,168,336
+Rhythmic Agent,Rhythmic Agent,168,168,336
+Rhythmic Agent,Probabilistic Agent,162,122,284
+Rhythmic Agent,Prediction Agent,46,38,84
+Rhythmic Agent,Grudge Agent,-344,168,-176
+Rhythmic Agent,ML Prediction Agent,-48,224,176
+Rhythmic Agent,Q-Learning Agent,100,164,264
+Probabilistic Agent,Tit-for-Tat Agent,220,220,440
+Probabilistic Agent,Rhythmic Agent,120,216,336
+Probabilistic Agent,Probabilistic Agent,134,174,308
+Probabilistic Agent,Prediction Agent,334,150,484
+Probabilistic Agent,Grudge Agent,-342,178,-164
+Probabilistic Agent,ML Prediction Agent,-316,244,-72
+Probabilistic Agent,Q-Learning Agent,32,192,224
 Prediction Agent,Tit-for-Tat Agent,300,300,600
-Prediction Agent,Rhythmic Agent,232,242,474
-Prediction Agent,Probabilistic Agent,233,338,571
+Prediction Agent,Rhythmic Agent,38,46,84
+Prediction Agent,Probabilistic Agent,166,318,484
 Prediction Agent,Prediction Agent,300,300,600
-Prediction Agent,Grudge Agent,97,112,209
-Prediction Agent,ML Prediction Agent,156,176,332
-Prediction Agent,Q-Learning Agent,253,288,541
-Grudge Agent,Tit-for-Tat Agent,104,99,203
-Grudge Agent,Rhythmic Agent,364,34,398
-Grudge Agent,Probabilistic Agent,412,22,434
-Grudge Agent,Prediction Agent,112,97,209
-Grudge Agent,Grudge Agent,100,100,200
-Grudge Agent,ML Prediction Agent,272,57,329
-Grudge Agent,Q-Learning Agent,176,81,257
-ML Prediction Agent,Tit-for-Tat Agent,134,129,263
-ML Prediction Agent,Rhythmic Agent,333,163,496
-ML Prediction Agent,Probabilistic Agent,398,38,436
-ML Prediction Agent,Prediction Agent,210,200,410
-ML Prediction Agent,Grudge Agent,51,296,347
-ML Prediction Agent,ML Prediction Agent,198,203,401
-ML Prediction Agent,Q-Learning Agent,247,97,344
-Q-Learning Agent,Tit-for-Tat Agent,293,293,586
-Q-Learning Agent,Rhythmic Agent,208,348,556
-Q-Learning Agent,Probabilistic Agent,260,295,555
-Q-Learning Agent,Prediction Agent,318,273,591
-Q-Learning Agent,Grudge Agent,88,148,236
-Q-Learning Agent,ML Prediction Agent,95,195,290
-Q-Learning Agent,Q-Learning Agent,295,265,560
+Prediction Agent,Grudge Agent,300,300,600
+Prediction Agent,ML Prediction Agent,-152,-120,-272
+Prediction Agent,Q-Learning Agent,230,318,548
+Grudge Agent,Tit-for-Tat Agent,300,300,600
+Grudge Agent,Rhythmic Agent,168,-344,-176
+Grudge Agent,Probabilistic Agent,314,-238,76
+Grudge Agent,Prediction Agent,300,300,600
+Grudge Agent,Grudge Agent,300,300,600
+Grudge Agent,ML Prediction Agent,476,-276,200
+Grudge Agent,Q-Learning Agent,132,-364,-232
+ML Prediction Agent,Tit-for-Tat Agent,-294,-302,-596
+ML Prediction Agent,Rhythmic Agent,228,-76,152
+ML Prediction Agent,Probabilistic Agent,216,-344,-128
+ML Prediction Agent,Prediction Agent,-76,-108,-184
+ML Prediction Agent,Grudge Agent,-374,50,-324
+ML Prediction Agent,ML Prediction Agent,-98,-106,-204
+ML Prediction Agent,Q-Learning Agent,88,-296,-208
+Q-Learning Agent,Tit-for-Tat Agent,180,180,360
+Q-Learning Agent,Rhythmic Agent,102,302,404
+Q-Learning Agent,Probabilistic Agent,146,58,204
+Q-Learning Agent,Prediction Agent,308,276,584
+Q-Learning Agent,Grudge Agent,-232,184,-48
+Q-Learning Agent,ML Prediction Agent,-356,156,-200
+Q-Learning Agent,Q-Learning Agent,236,268,504

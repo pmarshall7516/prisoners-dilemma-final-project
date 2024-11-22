@@ -113,6 +113,12 @@ def major_simulation(iterations=MAJOR_ITERATIONS, all=True):
             MLPredictionAgent(),
             QLearningAgent()
         ]
+        # agents = [
+        #     AlwaysStealAgent(),
+        #     TitForTatAgent(),
+        #     GrudgeAgent(),
+        # ]
+        
 
     print(f"Running Simulation for {iterations} Iterations...")
 
@@ -140,11 +146,13 @@ def major_simulation(iterations=MAJOR_ITERATIONS, all=True):
                     # Run a simulation step for the pair of agents
                     c1 = a1.choose()
                     c2 = a2.choose()
+                    # print(f"{a1.name}: {c1} against {a2.name}: {c2}")
 
                     a1.record_move(c1, c2)
                     a2.record_move(c2, c1)
 
                     s1, s2 = evaluate_choices(c1, c2)
+                    # print(f"{a1.name}: {s1}, {a2.name}: {s2}")
 
                     main_round_score += s1
                     opponent_round_score += s2
@@ -282,8 +290,11 @@ def main():
                 print("Invalid input. Using default of 10 iterations.")
                 user_game()
         elif mode == "-s":
-            if sys.argv[2] == '-a':
-                major_simulation(MAJOR_ITERATIONS, True)
+            if len(sys.argv) > 2:
+                if sys.argv[2] == '-a':
+                    major_simulation(MAJOR_ITERATIONS, True)
+                else:
+                    major_simulation(MAJOR_ITERATIONS, False)
             else:
                 major_simulation(MAJOR_ITERATIONS, False)
         elif mode == "-t":

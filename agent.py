@@ -5,8 +5,8 @@ import numpy as np
 # 0 = split, 1 = steal
 MAX_SCORE = 5
 SPLIT_SCORE = 3
-DISAGREE_SCORE = 0
-BOTH_STEAL_SCORE = 1
+DISAGREE_SCORE = -3
+BOTH_STEAL_SCORE = -5
 MAJOR_ITERATIONS = 100
 
 # Helper Methods
@@ -71,6 +71,9 @@ class RandomAgent(Agent):
         """Randomly chooses between split (0) or steal (1)."""
         choice = random.choice([0, 1])
         return choice
+    
+    def clear_memory(self):
+        super().clear_memory()
 
 class AlwaysSplitAgent(Agent):
     def __init__(self):
@@ -80,6 +83,9 @@ class AlwaysSplitAgent(Agent):
         """Always chooses to split (0)."""
         choice = 0
         return choice
+    
+    def clear_memory(self):
+        super().clear_memory()
 
 class AlwaysStealAgent(Agent):
     def __init__(self):
@@ -89,6 +95,9 @@ class AlwaysStealAgent(Agent):
         """Always chooses to steal (1)."""
         choice = 1
         return choice
+    
+    def clear_memory(self):
+        super().clear_memory()
 
 class TitForTatAgent(Agent):
     def __init__(self):
@@ -96,8 +105,11 @@ class TitForTatAgent(Agent):
 
     def choose(self):
         """Always chooses to cooperate on first turn, then mirrors opponent's previous move."""
-        choice = 0 if not self.own_history else self.opponent_history[-1]
+        choice = 0 if len(self.opponent_history) == 0 else self.opponent_history[-1]
         return choice
+    
+    def clear_memory(self):
+        super().clear_memory()
 
 class RhythmicAgent(Agent):
     def __init__(self, sequence_num=3, majority_split=True):
@@ -114,6 +126,10 @@ class RhythmicAgent(Agent):
             choice = 0 if is_nth_iteration else 1
         self.count += 1
         return choice
+    
+    def clear_memory(self):
+        super().clear_memory()
+        self.count = 1
 
 class ProbabilisticAgent(Agent):
     def __init__(self, prob=0.75):
@@ -123,6 +139,9 @@ class ProbabilisticAgent(Agent):
     def choose(self):
         choice = 0 if random.random() < self.probability else 1
         return choice
+    
+    def clear_memory(self):
+        super().clear_memory()
 
 class PredictionAgent(Agent):
     def __init__(self, pattern_length=2):
@@ -135,7 +154,7 @@ class PredictionAgent(Agent):
         if len(self.opponent_history) >= self.pattern_length:
             choice = self.predict_next_move()
         else:
-            choice = 0  # Default to "Split" if not enough history
+            choice = 0  # Default to Split if not enough history
 
         return choice
 
@@ -154,7 +173,10 @@ class PredictionAgent(Agent):
         if pattern_counts:
             return max(pattern_counts, key=pattern_counts.get)
 
-        return 0  # Default to split if no pattern found
+        return 0
+    
+    def clear_memory(self):
+        super().clear_memory()
 
 class GrudgeAgent(Agent):
     def __init__(self):
@@ -170,7 +192,7 @@ class GrudgeAgent(Agent):
 
     def clear_memory(self):
         super().clear_memory()
-        self.grude = False
+        self.grudge = False
     
 class MLPredictionAgent(Agent):
     def __init__(self):

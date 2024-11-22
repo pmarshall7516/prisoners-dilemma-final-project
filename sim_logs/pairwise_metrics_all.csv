@@ -1,101 +1,101 @@
 Agent1,Agent2,Agent1_Score,Agent2_Score,Combined_Score
-Random Agent,Random Agent,200,255,455
-Random Agent,Always Split Agent,400,150,550
-Random Agent,Always Steal Agent,63,248,311
-Random Agent,Tit-for-Tat Agent,236,231,467
-Random Agent,Rhythmic Agent,281,196,477
-Random Agent,Probabilistic Agent,302,207,509
-Random Agent,Prediction Agent,206,236,442
-Random Agent,Grudge Agent,52,307,359
-Random Agent,ML Prediction Agent,397,132,529
-Random Agent,Q-Learning Agent,392,162,554
-Always Split Agent,Random Agent,138,408,546
+Random Agent,Random Agent,224,224,448
+Random Agent,Always Split Agent,428,108,536
+Random Agent,Always Steal Agent,50,300,350
+Random Agent,Tit-for-Tat Agent,219,219,438
+Random Agent,Rhythmic Agent,288,198,486
+Random Agent,Probabilistic Agent,325,185,510
+Random Agent,Prediction Agent,153,208,361
+Random Agent,Grudge Agent,58,303,361
+Random Agent,ML Prediction Agent,383,148,531
+Random Agent,Q-Learning Agent,352,182,534
+Always Split Agent,Random Agent,162,392,554
 Always Split Agent,Always Split Agent,300,300,600
 Always Split Agent,Always Steal Agent,0,500,500
 Always Split Agent,Tit-for-Tat Agent,300,300,600
 Always Split Agent,Rhythmic Agent,201,366,567
-Always Split Agent,Probabilistic Agent,228,348,576
+Always Split Agent,Probabilistic Agent,225,350,575
 Always Split Agent,Prediction Agent,300,300,600
 Always Split Agent,Grudge Agent,0,500,500
-Always Split Agent,ML Prediction Agent,168,388,556
-Always Split Agent,Q-Learning Agent,300,300,600
-Always Steal Agent,Random Agent,300,50,350
+Always Split Agent,ML Prediction Agent,165,390,555
+Always Split Agent,Q-Learning Agent,39,474,513
+Always Steal Agent,Random Agent,276,56,332
 Always Steal Agent,Always Split Agent,500,0,500
 Always Steal Agent,Always Steal Agent,100,100,200
 Always Steal Agent,Tit-for-Tat Agent,104,99,203
 Always Steal Agent,Rhythmic Agent,364,34,398
-Always Steal Agent,Probabilistic Agent,396,26,422
+Always Steal Agent,Probabilistic Agent,408,23,431
 Always Steal Agent,Prediction Agent,112,97,209
 Always Steal Agent,Grudge Agent,100,100,200
-Always Steal Agent,ML Prediction Agent,312,47,359
-Always Steal Agent,Q-Learning Agent,500,0,500
-Tit-for-Tat Agent,Random Agent,221,226,447
+Always Steal Agent,ML Prediction Agent,300,50,350
+Always Steal Agent,Q-Learning Agent,196,76,272
+Tit-for-Tat Agent,Random Agent,228,233,461
 Tit-for-Tat Agent,Always Split Agent,300,300,600
 Tit-for-Tat Agent,Always Steal Agent,99,104,203
 Tit-for-Tat Agent,Tit-for-Tat Agent,300,300,600
 Tit-for-Tat Agent,Rhythmic Agent,267,267,534
-Tit-for-Tat Agent,Probabilistic Agent,274,274,548
+Tit-for-Tat Agent,Probabilistic Agent,267,267,534
 Tit-for-Tat Agent,Prediction Agent,300,300,600
 Tit-for-Tat Agent,Grudge Agent,99,104,203
 Tit-for-Tat Agent,ML Prediction Agent,125,130,255
-Tit-for-Tat Agent,Q-Learning Agent,300,300,600
-Rhythmic Agent,Random Agent,178,298,476
+Tit-for-Tat Agent,Q-Learning Agent,283,283,566
+Rhythmic Agent,Random Agent,204,279,483
 Rhythmic Agent,Always Split Agent,368,198,566
 Rhythmic Agent,Always Steal Agent,33,368,401
 Rhythmic Agent,Tit-for-Tat Agent,267,267,534
 Rhythmic Agent,Rhythmic Agent,269,264,533
-Rhythmic Agent,Probabilistic Agent,287,237,524
+Rhythmic Agent,Probabilistic Agent,290,235,525
 Rhythmic Agent,Prediction Agent,240,230,470
 Rhythmic Agent,Grudge Agent,33,368,401
-Rhythmic Agent,ML Prediction Agent,152,337,489
-Rhythmic Agent,Q-Learning Agent,368,198,566
-Probabilistic Agent,Random Agent,194,299,493
-Probabilistic Agent,Always Split Agent,336,246,582
+Rhythmic Agent,ML Prediction Agent,157,337,494
+Rhythmic Agent,Q-Learning Agent,134,304,438
+Probabilistic Agent,Random Agent,212,287,499
+Probabilistic Agent,Always Split Agent,362,207,569
 Probabilistic Agent,Always Steal Agent,26,396,422
-Probabilistic Agent,Tit-for-Tat Agent,268,268,536
-Probabilistic Agent,Rhythmic Agent,239,294,533
-Probabilistic Agent,Probabilistic Agent,234,299,533
-Probabilistic Agent,Prediction Agent,347,227,574
-Probabilistic Agent,Grudge Agent,30,380,410
-Probabilistic Agent,ML Prediction Agent,34,399,433
-Probabilistic Agent,Q-Learning Agent,354,219,573
-Prediction Agent,Random Agent,221,271,492
+Probabilistic Agent,Tit-for-Tat Agent,281,281,562
+Probabilistic Agent,Rhythmic Agent,248,278,526
+Probabilistic Agent,Probabilistic Agent,260,270,530
+Probabilistic Agent,Prediction Agent,288,238,526
+Probabilistic Agent,Grudge Agent,16,436,452
+Probabilistic Agent,ML Prediction Agent,35,405,440
+Probabilistic Agent,Q-Learning Agent,317,247,564
+Prediction Agent,Random Agent,231,211,442
 Prediction Agent,Always Split Agent,300,300,600
 Prediction Agent,Always Steal Agent,97,112,209
 Prediction Agent,Tit-for-Tat Agent,300,300,600
 Prediction Agent,Rhythmic Agent,232,242,474
-Prediction Agent,Probabilistic Agent,223,348,571
+Prediction Agent,Probabilistic Agent,213,348,561
 Prediction Agent,Prediction Agent,300,300,600
 Prediction Agent,Grudge Agent,97,112,209
-Prediction Agent,ML Prediction Agent,137,157,294
-Prediction Agent,Q-Learning Agent,300,300,600
-Grudge Agent,Random Agent,288,53,341
+Prediction Agent,ML Prediction Agent,123,148,271
+Prediction Agent,Q-Learning Agent,262,322,584
+Grudge Agent,Random Agent,296,51,347
 Grudge Agent,Always Split Agent,500,0,500
 Grudge Agent,Always Steal Agent,100,100,200
 Grudge Agent,Tit-for-Tat Agent,104,99,203
 Grudge Agent,Rhythmic Agent,364,34,398
-Grudge Agent,Probabilistic Agent,384,29,413
+Grudge Agent,Probabilistic Agent,412,22,434
 Grudge Agent,Prediction Agent,112,97,209
 Grudge Agent,Grudge Agent,100,100,200
-Grudge Agent,ML Prediction Agent,312,47,359
-Grudge Agent,Q-Learning Agent,500,0,500
-ML Prediction Agent,Random Agent,272,97,369
-ML Prediction Agent,Always Split Agent,404,144,548
-ML Prediction Agent,Always Steal Agent,40,340,380
-ML Prediction Agent,Tit-for-Tat Agent,155,150,305
-ML Prediction Agent,Rhythmic Agent,334,159,493
-ML Prediction Agent,Probabilistic Agent,396,36,432
-ML Prediction Agent,Prediction Agent,163,138,301
-ML Prediction Agent,Grudge Agent,51,296,347
-ML Prediction Agent,ML Prediction Agent,194,204,398
-ML Prediction Agent,Q-Learning Agent,396,156,552
-Q-Learning Agent,Random Agent,165,390,555
-Q-Learning Agent,Always Split Agent,300,300,600
-Q-Learning Agent,Always Steal Agent,0,500,500
-Q-Learning Agent,Tit-for-Tat Agent,300,300,600
-Q-Learning Agent,Rhythmic Agent,201,366,567
-Q-Learning Agent,Probabilistic Agent,240,340,580
-Q-Learning Agent,Prediction Agent,300,300,600
-Q-Learning Agent,Grudge Agent,0,500,500
-Q-Learning Agent,ML Prediction Agent,171,386,557
-Q-Learning Agent,Q-Learning Agent,300,300,600
+Grudge Agent,ML Prediction Agent,316,46,362
+Grudge Agent,Q-Learning Agent,228,68,296
+ML Prediction Agent,Random Agent,244,214,458
+ML Prediction Agent,Always Split Agent,414,129,543
+ML Prediction Agent,Always Steal Agent,51,296,347
+ML Prediction Agent,Tit-for-Tat Agent,166,161,327
+ML Prediction Agent,Rhythmic Agent,333,158,491
+ML Prediction Agent,Probabilistic Agent,375,55,430
+ML Prediction Agent,Prediction Agent,243,243,486
+ML Prediction Agent,Grudge Agent,47,312,359
+ML Prediction Agent,ML Prediction Agent,205,200,405
+ML Prediction Agent,Q-Learning Agent,232,92,324
+Q-Learning Agent,Random Agent,166,341,507
+Q-Learning Agent,Always Split Agent,316,276,592
+Q-Learning Agent,Always Steal Agent,86,156,242
+Q-Learning Agent,Tit-for-Tat Agent,289,289,578
+Q-Learning Agent,Rhythmic Agent,212,347,559
+Q-Learning Agent,Probabilistic Agent,313,198,511
+Q-Learning Agent,Prediction Agent,318,273,591
+Q-Learning Agent,Grudge Agent,67,232,299
+Q-Learning Agent,ML Prediction Agent,100,220,320
+Q-Learning Agent,Q-Learning Agent,294,289,583
