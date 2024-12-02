@@ -5,8 +5,8 @@ import numpy as np
 # 0 = split, 1 = steal
 MAX_SCORE = 5
 SPLIT_SCORE = 3
-DISAGREE_SCORE = -3
-BOTH_STEAL_SCORE = -5
+DISAGREE_SCORE = 0
+BOTH_STEAL_SCORE = 1
 MAJOR_ITERATIONS = 100
 
 # Helper Methods
@@ -249,9 +249,6 @@ class QLearningAgent(Agent):
     def __init__(self, learning_rate=0.1, discount_factor=0.95, exploration_rate=0.2, history_states=5):
         super().__init__(name="Q-Learning Agent")
         self.q_table = {}  # Q-table initialized as a dictionary for state-action pairs
-        self.learning_rate = learning_rate  # Alpha
-        self.discount_factor = discount_factor  # Gamma
-        self.exploration_rate = exploration_rate  # Epsilon
         self.learning_rate = learning_rate  # Alpha
         self.discount_factor = discount_factor  # Gamma
         self.exploration_rate = exploration_rate  # Epsilon

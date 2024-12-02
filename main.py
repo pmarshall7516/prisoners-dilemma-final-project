@@ -2,7 +2,10 @@
 
 import sys
 import time
+import os
 import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
 from agent import (evaluate_choices, MAX_SCORE, SPLIT_SCORE, DISAGREE_SCORE, BOTH_STEAL_SCORE, MAJOR_ITERATIONS, Agent, UserAgent, RandomAgent, AlwaysSplitAgent, 
                 AlwaysStealAgent, TitForTatAgent, RhythmicAgent , ProbabilisticAgent,
                 PredictionAgent, GrudgeAgent, MLPredictionAgent, QLearningAgent)
@@ -234,6 +237,8 @@ def major_simulation(iterations=MAJOR_ITERATIONS, all=True):
 
     print(f"Worst Agent by Average Score: {bottom_average_score_agent['Agent']} - Score: {bottom_average_score_agent['Average_Score']:.2f}")
 
+    plot_agent_metrics(agent_df)
+
 def minor_simulation(iterations=10):
     """Simulates a prisoner's dilemma game for a set number 
     of iterations between two agents. Shows the steps"""
@@ -275,6 +280,29 @@ def minor_simulation(iterations=10):
     print("\n--- Game Over ---")
     print(f"Final {a1.name}'s Score: {a1.score}")
     print(f"Final {a2.name}'s Score: {a2.score}\n")
+
+def plot_agent_metrics(df):
+    metrics_to_plot = ['Average_Score', 'Win_Percentage', 'Average_Score_Difference', 'Best_Partner_Score']
+    
+    # Set the plot style
+    sns.set_theme(style="whitegrid")
+    
+    # Create a bar chart for each metric
+    for metric in metrics_to_plot:
+        plt.figure(figsize=(10, 6))
+        sns.barplot(x='Agent', y=metric, data=df, palette="viridis")
+        plt.title(f"Comparison of Agents by {metric.replace('_', ' ')}", fontsize=14)
+        plt.ylabel(metric.replace('_', ' '), fontsize=12)
+        plt.xlabel("Agent", fontsize=12)
+        plt.xticks(rotation=45)
+        plt.tight_layout()
+        
+        # Save the plot
+        output_dir = "plots"
+        os.makedirs(output_dir, exist_ok=True)
+        plot_filename = os.path.join(output_dir, f"{metric}.png")
+        plt.savefig(plot_filename, dpi=300)
+        plt.close()
 
 def main():
     if len(sys.argv) < 2:
