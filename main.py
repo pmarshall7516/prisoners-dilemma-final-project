@@ -1,9 +1,10 @@
 #! /usr/bin/env python
 
 import sys
+import json
 import time
 import pandas as pd
-from agent import (evaluate_choices, MAX_SCORE, SPLIT_SCORE, DISAGREE_SCORE, BOTH_STEAL_SCORE, MAJOR_ITERATIONS, Agent, UserAgent, RandomAgent, AlwaysSplitAgent, 
+from agent import (evaluate_choices, MAJOR_ITERATIONS, Agent, UserAgent, RandomAgent, AlwaysSplitAgent, 
                 AlwaysStealAgent, TitForTatAgent, RhythmicAgent , ProbabilisticAgent,
                 PredictionAgent, GrudgeAgent, MLPredictionAgent, QLearningAgent)
     
@@ -53,6 +54,9 @@ def select_agent():
             print("Invalid input. Please enter a number 1-5.")
 
 
+
+
+
 def user_game(iterations=10):
     """Simulates a prisoner's dilemma game for a set number of iterations 
     between a user-controlled agent and an opponent agent."""
@@ -87,8 +91,72 @@ def user_game(iterations=10):
     print("\n--- Game Over ---")
     print(f"Final User Score: {user_agent.score}")
     print(f"Final Opponent Score: {opponent.score}\n")
+
+import json
+
+def parse_simulation_config(json_path):
+    """
+    Parses a JSON file and returns a dictionary containing:
+      - A dictionary of agents where the keys are agent types and the values are their hyperparameters.
+      - The reward values from the simulation configuration.
+
+    Args:
+        json_path (str): Path to the JSON file.
+
+    Returns:
+        dict: Contains two keys:
+              - 'agents': Dictionary of agent types and their hyperparameters.
+              - 'rewards': Dictionary of reward values.
+    """
+    with open(json_path, 'r') as file:
+        data = json.load(file)
+
+    # Extract agent information
+    agents_with_hyperparameters = {}
+
+    for agent in data.get("agents", []):
+        agent_type = agent.get("type")
+        hyperparameters = agent.get("hyperparameters", {})
+        
+        # Store the agent type as key and hyperparameters as value
+        agents_with_hyperparameters[agent_type] = hyperparameters
     
-def major_simulation(iterations=MAJOR_ITERATIONS, all=True):
+    # Extract reward values
+    rewards = data.get("simulation", {}).get("scores", {})
+
+    return {
+        "agents": agents_with_hyperparameters,
+        "rewards": rewards
+    }
+
+
+
+    
+def major_simulation(iterations=MAJOR_ITERATIONS, all=True, parameter_file = "parameter_configs/default.json"):
+
+    # Parse hyperparameters from the JSON file
+    hyperparameters = parse_simulation_config(parameter_file)
+    agent_params = hyperparameters.get("agents", {})
+    rewards = hyperparameters.get("rewards", {})
+
+    
+
+    # Initialize hyper parameters
+    #rewards
+    split_score = rewards["split_score"]
+    disagree_score = rewards["disagree_score"]
+    steal_score = rewards["both_steal_score"]
+    max_score = rewards["max_score"]
+
+    #agents
+    prob_agent_params = agent_params["ProbabilisticAgent"]
+    pred_agent_params = agent_params["PredictionAgent"]
+    rhythm_agent_params = agent_params["RhythmicAgent"]
+    ml_agent_params = agent_params["MLPredictionAgent"]
+    q_agent_params = agent_params["QLearningAgent"]
+
+
+
     # Instantiate each agent type
     if all:
         agents = [
@@ -96,22 +164,26 @@ def major_simulation(iterations=MAJOR_ITERATIONS, all=True):
             AlwaysSplitAgent(),
             AlwaysStealAgent(),
             TitForTatAgent(),
-            RhythmicAgent(sequence_num=3, majority_split=True),
-            ProbabilisticAgent(prob=0.75),
-            PredictionAgent(pattern_length=2),
+            RhythmicAgent(sequence_num=rhythm_agent_params["sequence_num"], majority_split=rhythm_agent_params["majority_split"]),
+            ProbabilisticAgent(prob= prob_agent_params["probability"]),
+            PredictionAgent(pattern_length=pred_agent_params["pattern_length"]),
             GrudgeAgent(),
-            MLPredictionAgent(),
-            QLearningAgent()
+            MLPredictionAgent(history_states=ml_agent_params["history_states"]),
+            QLearningAgent(learning_rate = q_agent_params["learning_rate"], discount_factor = q_agent_params["discount_factor"], 
+                           exploration_rate= q_agent_params["exploration_rate"], history_states= q_agent_params["history_states"],
+                           split = split_score, disagree =disagree_score, steal = steal_score, max = max_score)
         ]
     else:
         agents = [
             TitForTatAgent(),
-            RhythmicAgent(sequence_num=3, majority_split=True),
-            ProbabilisticAgent(prob=0.75),
-            PredictionAgent(pattern_length=2),
+            RhythmicAgent(sequence_num=rhythm_agent_params["sequence_num"], majority_split=rhythm_agent_params["majority_split"]),
+            ProbabilisticAgent(prob= prob_agent_params["probability"]),
+            PredictionAgent(pattern_length=pred_agent_params["pattern_length"]),
             GrudgeAgent(),
-            MLPredictionAgent(),
-            QLearningAgent()
+            MLPredictionAgent(history_states=ml_agent_params["history_states"]),
+            QLearningAgent(learning_rate = q_agent_params["learning_rate"], discount_factor = q_agent_params["discount_factor"], 
+                           exploration_rate= q_agent_params["exploration_rate"], history_states= q_agent_params["history_states"],
+                           split = split_score, disagree =disagree_score, steal = steal_score, max = max_score)
         ]
         # agents = [
         #     AlwaysStealAgent(),
@@ -151,7 +223,7 @@ def major_simulation(iterations=MAJOR_ITERATIONS, all=True):
                     a1.record_move(c1, c2)
                     a2.record_move(c2, c1)
 
-                    s1, s2 = evaluate_choices(c1, c2)
+                    s1, s2 = evaluate_choices(c1, c2, split_score, disagree_score, steal_score, max_score)
                     # print(f"{a1.name}: {s1}, {a2.name}: {s2}")
 
                     main_round_score += s1
@@ -212,8 +284,8 @@ def major_simulation(iterations=MAJOR_ITERATIONS, all=True):
     pairwise_df = pd.DataFrame(pairwise_metrics)
 
     # Save or display the results
-    agent_df.to_csv(f"sim_logs/agent_metrics_{"all" if all else "subset"}.csv", index=False)
-    pairwise_df.to_csv(f"sim_logs/pairwise_metrics_{"all" if all else "subset"}.csv", index=False)
+    agent_df.to_csv(f"sim_logs/agent_metrics_{'all' if all else 'subset'}.csv", index=False)
+    pairwise_df.to_csv(f"sim_logs/pairwise_metrics_{'all' if all else 'subset'}.csv", index=False)
 
     print("Agent Metrics:")
     print(agent_df)
@@ -281,6 +353,7 @@ def main():
         major_simulation(MAJOR_ITERATIONS, True)
     else: 
         mode = sys.argv[1]
+        param_file = sys.argv[2] if len(sys.argv) > 2 else "parameter_configs/default.json"
         
         if mode == "-u":
             try:
@@ -292,11 +365,11 @@ def main():
         elif mode == "-s":
             if len(sys.argv) > 2:
                 if sys.argv[2] == '-a':
-                    major_simulation(MAJOR_ITERATIONS, True)
+                    major_simulation(MAJOR_ITERATIONS, True, parameter_file=param_file)
                 else:
-                    major_simulation(MAJOR_ITERATIONS, False)
+                    major_simulation(MAJOR_ITERATIONS, False, parameter_file=param_file)
             else:
-                major_simulation(MAJOR_ITERATIONS, False)
+                major_simulation(MAJOR_ITERATIONS, False, parameter_file=param_file)
         elif mode == "-t":
             try:
                 iters = input("How many iterations would you like this game to last? (Default 10): ")

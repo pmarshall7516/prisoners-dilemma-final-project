@@ -2,23 +2,19 @@ import random
 from sklearn.linear_model import LogisticRegression
 import numpy as np
 
-# 0 = split, 1 = steal
-MAX_SCORE = 5
-SPLIT_SCORE = 3
-DISAGREE_SCORE = -3
-BOTH_STEAL_SCORE = -5
-MAJOR_ITERATIONS = 100
+
+MAJOR_ITERATIONS = 200
 
 # Helper Methods
-def evaluate_choices(c1, c2):
+def evaluate_choices(c1, c2, split_score, disagree_score, both_steal_score, max_score):
     if c1 == 0 and c2 == 0:  # Both split
-        return SPLIT_SCORE, SPLIT_SCORE
+        return split_score, split_score
     elif c1 == 1 and c2 == 0:  # Agent 1 steals, Agent 2 splits
-        return MAX_SCORE, DISAGREE_SCORE
+        return max_score, disagree_score
     elif c1 == 0 and c2 == 1:  # Agent 1 splits, Agent 2 steals
-        return DISAGREE_SCORE, MAX_SCORE
+        return disagree_score, max_score
     else:  # Both steal
-        return BOTH_STEAL_SCORE, BOTH_STEAL_SCORE
+        return both_steal_score, both_steal_score
 
 class Agent:
     def __init__(self, name="Agent"):
@@ -194,21 +190,24 @@ class GrudgeAgent(Agent):
         super().clear_memory()
         self.grudge = False
     
+
+
 class MLPredictionAgent(Agent):
-    def __init__(self):
+    def __init__(self, history_states=4):
         super().__init__(name="ML Prediction Agent")
         self.model = LogisticRegression()
         self.features = []
         self.labels = []
+        self.history_states = history_states
 
     def choose(self):
         """Predicts the opponent's next move using a machine learning model trained on historical data,
            including both the opponent's moves and the agent's own past guesses as features."""
-
-        # Gather data if there are at least four moves to form features and labels
-        if len(self.opponent_history) >= 4:
-            # Last three moves of both opponent and agent as features
-            feature = self.opponent_history[-4:-1] + self.own_history[-4:-1]
+        
+        # Gather data if there are at least 'history_states' moves to form features and labels
+        if len(self.opponent_history) >= self.history_states:
+            # Combine last 'history_states' moves of both opponent and agent as features
+            feature = self.opponent_history[-self.history_states:] + self.own_history[-self.history_states:]
             self.features.append(feature)
             self.labels.append(self.opponent_history[-1])  # Next opponent action as the label
 
@@ -220,13 +219,15 @@ class MLPredictionAgent(Agent):
             if len(set(y)) > 1:
                 self.model.fit(X, y)
 
-                # Make a prediction based on the latest sequence of moves
-                prediction = self.model.predict([self.opponent_history[-3:] + self.own_history[-3:]])[0]
+                # Make a prediction based on the latest sequence of moves (ensure correct feature size)
+                prediction_feature = self.opponent_history[-self.history_states:] + self.own_history[-self.history_states:]
+                prediction = self.model.predict([prediction_feature])[0]
                 self.own_history.append(prediction)  # Track this guess for the next round
-                 #if the opponent is going to split, we steal
+
+                # If the prediction is 0 (opponent will split), we choose to steal
                 if prediction == 0:
                     return 1
-                # if they steal, we are going to split to maximize our score
+                # If the prediction is 1 (opponent will steal), we choose to split
                 else:
                     return 0
             else:
@@ -245,8 +246,10 @@ class MLPredictionAgent(Agent):
         self.labels = []
 
 
+
 class QLearningAgent(Agent):
-    def __init__(self, learning_rate=0.1, discount_factor=0.95, exploration_rate=0.2, history_states=5):
+    def __init__(self, learning_rate=0.1, discount_factor=0.95, exploration_rate=0.2, 
+                 history_states=5, split = 3, disagree =-3, steal = -5, max_score = 5):
         super().__init__(name="Q-Learning Agent")
         self.q_table = {}  # Q-table initialized as a dictionary for state-action pairs
         self.learning_rate = learning_rate  # Alpha
@@ -258,6 +261,10 @@ class QLearningAgent(Agent):
         self.last_state = None
         self.last_action = None
         self.history_states = history_states
+        self.split_score = split  # Reward for splitting
+        self.disagree_score = disagree  # Penalty for disagreeing
+        self.steal_score = steal  # Penalty for stealing
+        self.max_score = max_score  # Maximum score for winning
  
     def get_state(self, history_states):
         """Encodes the last (history_states) opponent moves as the current state."""
@@ -291,7 +298,8 @@ class QLearningAgent(Agent):
         """Records the agent's own choice and the opponent's last choice,
            and updates Q-values immediately."""
         super().record_move(choice, opponent_choice)
-        reward, _ = evaluate_choices(choice, opponent_choice)  # Get reward for the action
+        reward, _ = evaluate_choices(choice, opponent_choice, 
+                                     self.split_score, self.disagree_score, self.steal_score, self.max_score)  # Get reward for the action
  
         if self.last_state is not None and self.last_action is not None:
             # Get the maximum Q-value for the next state
