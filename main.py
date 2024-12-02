@@ -290,10 +290,10 @@ def major_simulation(iterations=MAJOR_ITERATIONS, all=True, parameter_file = "pa
     agent_df.to_csv(f"sim_logs/agent_metrics_{'all' if all else 'subset'}.csv", index=False)
     pairwise_df.to_csv(f"sim_logs/pairwise_metrics_{'all' if all else 'subset'}.csv", index=False)
 
-    print("Agent Metrics:")
-    print(agent_df)
-    print("\nPairwise Metrics:")
-    print(pairwise_df)
+    # print("Agent Metrics:")
+    # print(agent_df)
+    # print("\nPairwise Metrics:")
+    # print(pairwise_df)
 
     # Determine the top agents based on each performance metric
     top_average_score_agent = agent_df.loc[agent_df['Average_Score'].idxmax()]
@@ -395,7 +395,13 @@ def plot_agent_metrics(df):
     # Create a bar chart for each metric
     for metric in metrics_to_plot:
         plt.figure(figsize=(10, 6))
-        sns.barplot(x='Agent', y=metric, data=df, palette="viridis")
+        
+        # Use the x variable as hue for coloring
+        sns.barplot(x='Agent', y=metric, data=df, hue='Agent', palette="viridis", dodge=False)
+        
+        # Suppress the legend as 'hue' is used only for coloring
+        plt.legend([], [], frameon=False)
+        
         plt.title(f"Comparison of Agents by {metric.replace('_', ' ')}", fontsize=14)
         plt.ylabel(metric.replace('_', ' '), fontsize=12)
         plt.xlabel("Agent", fontsize=12)
