@@ -1,9 +1,10 @@
 #! /usr/bin/env python
 
 import sys
+import json
 import time
-import argparse
-from agent import (evaluate_choices, MAX_SCORE, SPLIT_SCORE, DISAGREE_SCORE, BOTH_STEAL_SCORE, MAJOR_ITERATIONS, Agent, UserAgent, RandomAgent, AlwaysSplitAgent, 
+import pandas as pd
+from agent import (evaluate_choices, MAJOR_ITERATIONS, Agent, UserAgent, RandomAgent, AlwaysSplitAgent, 
                 AlwaysStealAgent, TitForTatAgent, RhythmicAgent , ProbabilisticAgent,
                 PredictionAgent, GrudgeAgent, MLPredictionAgent, QLearningAgent)
     
@@ -53,6 +54,9 @@ def select_agent():
             print("Invalid input. Please enter a number 1-5.")
 
 
+
+
+
 def user_game(iterations=10):
     """Simulates a prisoner's dilemma game for a set number of iterations 
     between a user-controlled agent and an opponent agent."""
@@ -87,8 +91,72 @@ def user_game(iterations=10):
     print("\n--- Game Over ---")
     print(f"Final User Score: {user_agent.score}")
     print(f"Final Opponent Score: {opponent.score}\n")
+
+import json
+
+def parse_simulation_config(json_path):
+    """
+    Parses a JSON file and returns a dictionary containing:
+      - A dictionary of agents where the keys are agent types and the values are their hyperparameters.
+      - The reward values from the simulation configuration.
+
+    Args:
+        json_path (str): Path to the JSON file.
+
+    Returns:
+        dict: Contains two keys:
+              - 'agents': Dictionary of agent types and their hyperparameters.
+              - 'rewards': Dictionary of reward values.
+    """
+    with open(json_path, 'r') as file:
+        data = json.load(file)
+
+    # Extract agent information
+    agents_with_hyperparameters = {}
+
+    for agent in data.get("agents", []):
+        agent_type = agent.get("type")
+        hyperparameters = agent.get("hyperparameters", {})
+        
+        # Store the agent type as key and hyperparameters as value
+        agents_with_hyperparameters[agent_type] = hyperparameters
     
-def major_simulation(iterations=MAJOR_ITERATIONS, all=True):
+    # Extract reward values
+    rewards = data.get("simulation", {}).get("scores", {})
+
+    return {
+        "agents": agents_with_hyperparameters,
+        "rewards": rewards
+    }
+
+
+
+    
+def major_simulation(iterations=MAJOR_ITERATIONS, all=True, parameter_file = "parameter_configs/default.json"):
+
+    # Parse hyperparameters from the JSON file
+    hyperparameters = parse_simulation_config(parameter_file)
+    agent_params = hyperparameters.get("agents", {})
+    rewards = hyperparameters.get("rewards", {})
+
+    
+
+    # Initialize hyper parameters
+    #rewards
+    split_score = rewards["split_score"]
+    disagree_score = rewards["disagree_score"]
+    steal_score = rewards["both_steal_score"]
+    max_score = rewards["max_score"]
+
+    #agents
+    prob_agent_params = agent_params["ProbabilisticAgent"]
+    pred_agent_params = agent_params["PredictionAgent"]
+    rhythm_agent_params = agent_params["RhythmicAgent"]
+    ml_agent_params = agent_params["MLPredictionAgent"]
+    q_agent_params = agent_params["QLearningAgent"]
+
+
+
     # Instantiate each agent type
     if all:
         agents = [
@@ -96,28 +164,41 @@ def major_simulation(iterations=MAJOR_ITERATIONS, all=True):
             AlwaysSplitAgent(),
             AlwaysStealAgent(),
             TitForTatAgent(),
-            RhythmicAgent(sequence_num=3, majority_split=True),
-            ProbabilisticAgent(prob=0.75),
-            PredictionAgent(pattern_length=2),
+            RhythmicAgent(sequence_num=rhythm_agent_params["sequence_num"], majority_split=rhythm_agent_params["majority_split"]),
+            ProbabilisticAgent(prob= prob_agent_params["probability"]),
+            PredictionAgent(pattern_length=pred_agent_params["pattern_length"]),
             GrudgeAgent(),
-            MLPredictionAgent(),
-            QLearningAgent()
+            MLPredictionAgent(history_states=ml_agent_params["history_states"]),
+            QLearningAgent(learning_rate = q_agent_params["learning_rate"], discount_factor = q_agent_params["discount_factor"], 
+                           exploration_rate= q_agent_params["exploration_rate"], history_states= q_agent_params["history_states"],
+                           split = split_score, disagree =disagree_score, steal = steal_score, max = max_score)
         ]
     else:
         agents = [
             TitForTatAgent(),
-            RhythmicAgent(sequence_num=3, majority_split=True),
-            ProbabilisticAgent(prob=0.75),
-            PredictionAgent(pattern_length=2),
+            RhythmicAgent(sequence_num=rhythm_agent_params["sequence_num"], majority_split=rhythm_agent_params["majority_split"]),
+            ProbabilisticAgent(prob= prob_agent_params["probability"]),
+            PredictionAgent(pattern_length=pred_agent_params["pattern_length"]),
             GrudgeAgent(),
-            MLPredictionAgent(),
-            QLearningAgent()
+            MLPredictionAgent(history_states=ml_agent_params["history_states"]),
+            QLearningAgent(learning_rate = q_agent_params["learning_rate"], discount_factor = q_agent_params["discount_factor"], 
+                           exploration_rate= q_agent_params["exploration_rate"], history_states= q_agent_params["history_states"],
+                           split = split_score, disagree =disagree_score, steal = steal_score, max = max_score)
         ]
+        # agents = [
+        #     AlwaysStealAgent(),
+        #     TitForTatAgent(),
+        #     GrudgeAgent(),
+        # ]
+        
 
     print(f"Running Simulation for {iterations} Iterations...")
 
     highest_combined_score = 0
     top_pair = (None, None)
+
+    agent_metrics = []
+    pairwise_metrics = []
     
     for a1 in agents:  # Main agent
         opponent_score_differences = []
@@ -137,11 +218,13 @@ def major_simulation(iterations=MAJOR_ITERATIONS, all=True):
                     # Run a simulation step for the pair of agents
                     c1 = a1.choose()
                     c2 = a2.choose()
+                    # print(f"{a1.name}: {c1} against {a2.name}: {c2}")
 
                     a1.record_move(c1, c2)
                     a2.record_move(c2, c1)
 
-                    s1, s2 = evaluate_choices(c1, c2)
+                    s1, s2 = evaluate_choices(c1, c2, split_score, disagree_score, steal_score, max_score)
+                    # print(f"{a1.name}: {s1}, {a2.name}: {s2}")
 
                     main_round_score += s1
                     opponent_round_score += s2
@@ -165,31 +248,63 @@ def major_simulation(iterations=MAJOR_ITERATIONS, all=True):
                     best_partner_score = combined_score
                     best_partner = a2.name
 
+                # Record pairwise data
+                pairwise_metrics.append({
+                    "Agent1": a1.name,
+                    "Agent2": a2.name,
+                    "Agent1_Score": main_round_score,
+                    "Agent2_Score": opponent_round_score,
+                    "Combined_Score": combined_score
+                })
+
             
 
         # Calculate average metrics for the agent
         average_score = a1.score / len(agents)  # Include self-match in the average
         win_percentage = (a1.wins / len(agents)) * 100
         average_score_difference = sum(opponent_score_differences) / len(opponent_score_differences)
+
+        agent_metrics.append({
+            "Agent": a1.name,
+            "Average_Score": average_score,
+            "Win_Percentage": win_percentage,
+            "Average_Score_Difference": average_score_difference,
+            "Best_Partner": best_partner,
+            "Best_Partner_Score": best_partner_score
+        })
         
-        print(f"{a1.name} - Average Score: {average_score:.2f}, "
-              f"Win Percentage: {win_percentage:.2f}%, "
-              f"Average Opponent Score Difference: {average_score_difference:.2f}")
-        print(f"    Best Partner for {a1.name}: {best_partner} with a combined score of {best_partner_score}")
+        # print(f"{a1.name} - Average Score: {average_score:.2f}, "
+        #       f"Win Percentage: {win_percentage:.2f}%, "
+        #       f"Average Opponent Score Difference: {average_score_difference:.2f}")
+        # print(f"    Best Partner for {a1.name}: {best_partner} with a combined score of {best_partner_score}")
+
     
+    # Create DataFrames
+    agent_df = pd.DataFrame(agent_metrics)
+    pairwise_df = pd.DataFrame(pairwise_metrics)
+
+    # Save or display the results
+    agent_df.to_csv(f"sim_logs/agent_metrics_{'all' if all else 'subset'}.csv", index=False)
+    pairwise_df.to_csv(f"sim_logs/pairwise_metrics_{'all' if all else 'subset'}.csv", index=False)
+
+    print("Agent Metrics:")
+    print(agent_df)
+    print("\nPairwise Metrics:")
+    print(pairwise_df)
+
     # Determine the top agents based on each performance metric
-    top_average_score_agent = max(agents, key=lambda agent: agent.score / len(agents))
-    bottom_average_score_agent = min(agents, key=lambda agent: agent.score / len(agents))
-    top_win_rate_agent = max(agents, key=lambda agent: agent.wins / len(agents) * 100)
+    top_average_score_agent = agent_df.loc[agent_df['Average_Score'].idxmax()]
+    top_win_rate_agent = agent_df.loc[agent_df['Win_Percentage'].idxmax()]
+    bottom_average_score_agent = agent_df.loc[agent_df['Average_Score'].idxmin()]
 
     print("\nResults Summary:")
-    print(f"Top Agent by Average Score: {top_average_score_agent.name} - Score: {top_average_score_agent.score / len(agents):.2f}")
-    print(f"Top Agent by Win Percentage: {top_win_rate_agent.name} - Win Percentage: {top_win_rate_agent.wins / len(agents) * 100:.2f}%")
+    print(f"Top Agent by Average Score: {top_average_score_agent['Agent']} - Score: {top_average_score_agent['Average_Score']:.2f}")
+    print(f"Top Agent by Win Percentage: {top_win_rate_agent['Agent']} - Win Percentage: {top_win_rate_agent['Win_Percentage']:.2f}%")
 
     if top_pair[0] and top_pair[1]:
         print(f"Highest Combined Score Pair: {top_pair[0].name} and {top_pair[1].name} - Combined Score: {highest_combined_score}")
 
-    print(f"Worst Agent by Average Score: {bottom_average_score_agent.name} - Score: {bottom_average_score_agent.score / len(agents):.2f}")
+    print(f"Worst Agent by Average Score: {bottom_average_score_agent['Agent']} - Score: {bottom_average_score_agent['Average_Score']:.2f}")
 
 def minor_simulation(iterations=10):
     """Simulates a prisoner's dilemma game for a set number 
@@ -234,24 +349,34 @@ def minor_simulation(iterations=10):
     print(f"Final {a2.name}'s Score: {a2.score}\n")
 
 def main():
-    mode = sys.argv[1]
-    
-    if mode == "-u":
-        try:
-            iters = input("How many iterations would you like this game to last? (Default 10): ")
-            user_game(int(iters) if iters else 10)
-        except ValueError:
-            print("Invalid input. Using default of 10 iterations.")
-            user_game()
-    elif mode == "-s":
-        major_simulation(MAJOR_ITERATIONS, False)
-    elif mode == "-t":
-        try:
-            iters = input("How many iterations would you like this game to last? (Default 10): ")
-            minor_simulation(int(iters) if iters else 10)
-        except ValueError:
-            print("Invalid input. Using default of 10 iterations.")
-            minor_simulation()
+    if len(sys.argv) < 2:
+        major_simulation(MAJOR_ITERATIONS, True)
+    else: 
+        mode = sys.argv[1]
+        param_file = sys.argv[2] if len(sys.argv) > 2 else "parameter_configs/default.json"
+        
+        if mode == "-u":
+            try:
+                iters = input("How many iterations would you like this game to last? (Default 10): ")
+                user_game(int(iters) if iters else 10)
+            except ValueError:
+                print("Invalid input. Using default of 10 iterations.")
+                user_game()
+        elif mode == "-s":
+            if len(sys.argv) > 2:
+                if sys.argv[2] == '-a':
+                    major_simulation(MAJOR_ITERATIONS, True, parameter_file=param_file)
+                else:
+                    major_simulation(MAJOR_ITERATIONS, False, parameter_file=param_file)
+            else:
+                major_simulation(MAJOR_ITERATIONS, False, parameter_file=param_file)
+        elif mode == "-t":
+            try:
+                iters = input("How many iterations would you like this game to last? (Default 10): ")
+                minor_simulation(int(iters) if iters else 10)
+            except ValueError:
+                print("Invalid input. Using default of 10 iterations.")
+                minor_simulation()
 
 if __name__ == "__main__":
     main()

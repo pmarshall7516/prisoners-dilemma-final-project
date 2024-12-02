@@ -2,23 +2,19 @@ import random
 from sklearn.linear_model import LogisticRegression
 import numpy as np
 
-# 0 = split, 1 = steal
-MAX_SCORE = 5
-SPLIT_SCORE = 3
-DISAGREE_SCORE = 0
-BOTH_STEAL_SCORE = 1
-MAJOR_ITERATIONS = 100
+
+MAJOR_ITERATIONS = 200
 
 # Helper Methods
-def evaluate_choices(c1, c2):
+def evaluate_choices(c1, c2, split_score, disagree_score, both_steal_score, max_score):
     if c1 == 0 and c2 == 0:  # Both split
-        return SPLIT_SCORE, SPLIT_SCORE
+        return split_score, split_score
     elif c1 == 1 and c2 == 0:  # Agent 1 steals, Agent 2 splits
-        return MAX_SCORE, DISAGREE_SCORE
+        return max_score, disagree_score
     elif c1 == 0 and c2 == 1:  # Agent 1 splits, Agent 2 steals
-        return DISAGREE_SCORE, MAX_SCORE
+        return disagree_score, max_score
     else:  # Both steal
-        return BOTH_STEAL_SCORE, BOTH_STEAL_SCORE
+        return both_steal_score, both_steal_score
 
 class Agent:
     def __init__(self, name="Agent"):
@@ -71,6 +67,9 @@ class RandomAgent(Agent):
         """Randomly chooses between split (0) or steal (1)."""
         choice = random.choice([0, 1])
         return choice
+    
+    def clear_memory(self):
+        super().clear_memory()
 
 class AlwaysSplitAgent(Agent):
     def __init__(self):
@@ -80,6 +79,9 @@ class AlwaysSplitAgent(Agent):
         """Always chooses to split (0)."""
         choice = 0
         return choice
+    
+    def clear_memory(self):
+        super().clear_memory()
 
 class AlwaysStealAgent(Agent):
     def __init__(self):
@@ -89,6 +91,9 @@ class AlwaysStealAgent(Agent):
         """Always chooses to steal (1)."""
         choice = 1
         return choice
+    
+    def clear_memory(self):
+        super().clear_memory()
 
 class TitForTatAgent(Agent):
     def __init__(self):
@@ -96,8 +101,11 @@ class TitForTatAgent(Agent):
 
     def choose(self):
         """Always chooses to cooperate on first turn, then mirrors opponent's previous move."""
-        choice = 0 if not self.own_history else self.opponent_history[-1]
+        choice = 0 if len(self.opponent_history) == 0 else self.opponent_history[-1]
         return choice
+    
+    def clear_memory(self):
+        super().clear_memory()
 
 class RhythmicAgent(Agent):
     def __init__(self, sequence_num=3, majority_split=True):
@@ -114,6 +122,10 @@ class RhythmicAgent(Agent):
             choice = 0 if is_nth_iteration else 1
         self.count += 1
         return choice
+    
+    def clear_memory(self):
+        super().clear_memory()
+        self.count = 1
 
 class ProbabilisticAgent(Agent):
     def __init__(self, prob=0.75):
@@ -123,6 +135,9 @@ class ProbabilisticAgent(Agent):
     def choose(self):
         choice = 0 if random.random() < self.probability else 1
         return choice
+    
+    def clear_memory(self):
+        super().clear_memory()
 
 class PredictionAgent(Agent):
     def __init__(self, pattern_length=2):
@@ -135,7 +150,7 @@ class PredictionAgent(Agent):
         if len(self.opponent_history) >= self.pattern_length:
             choice = self.predict_next_move()
         else:
-            choice = 0  # Default to "Split" if not enough history
+            choice = 0  # Default to Split if not enough history
 
         return choice
 
@@ -154,7 +169,10 @@ class PredictionAgent(Agent):
         if pattern_counts:
             return max(pattern_counts, key=pattern_counts.get)
 
-        return 0  # Default to split if no pattern found
+        return 0
+    
+    def clear_memory(self):
+        super().clear_memory()
 
 class GrudgeAgent(Agent):
     def __init__(self):
@@ -170,23 +188,26 @@ class GrudgeAgent(Agent):
 
     def clear_memory(self):
         super().clear_memory()
-        self.grude = False
+        self.grudge = False
     
+
+
 class MLPredictionAgent(Agent):
-    def __init__(self):
+    def __init__(self, history_states=4):
         super().__init__(name="ML Prediction Agent")
         self.model = LogisticRegression()
         self.features = []
         self.labels = []
+        self.history_states = history_states
 
     def choose(self):
         """Predicts the opponent's next move using a machine learning model trained on historical data,
            including both the opponent's moves and the agent's own past guesses as features."""
-
-        # Gather data if there are at least four moves to form features and labels
-        if len(self.opponent_history) >= 4:
-            # Last three moves of both opponent and agent as features
-            feature = self.opponent_history[-4:-1] + self.own_history[-4:-1]
+        
+        # Gather data if there are at least 'history_states' moves to form features and labels
+        if len(self.opponent_history) >= self.history_states:
+            # Combine last 'history_states' moves of both opponent and agent as features
+            feature = self.opponent_history[-self.history_states:] + self.own_history[-self.history_states:]
             self.features.append(feature)
             self.labels.append(self.opponent_history[-1])  # Next opponent action as the label
 
@@ -198,13 +219,15 @@ class MLPredictionAgent(Agent):
             if len(set(y)) > 1:
                 self.model.fit(X, y)
 
-                # Make a prediction based on the latest sequence of moves
-                prediction = self.model.predict([self.opponent_history[-3:] + self.own_history[-3:]])[0]
+                # Make a prediction based on the latest sequence of moves (ensure correct feature size)
+                prediction_feature = self.opponent_history[-self.history_states:] + self.own_history[-self.history_states:]
+                prediction = self.model.predict([prediction_feature])[0]
                 self.own_history.append(prediction)  # Track this guess for the next round
-                 #if the opponent is going to split, we steal
+
+                # If the prediction is 0 (opponent will split), we choose to steal
                 if prediction == 0:
                     return 1
-                # if they steal, we are going to split to maximize our score
+                # If the prediction is 1 (opponent will steal), we choose to split
                 else:
                     return 0
             else:
@@ -223,12 +246,80 @@ class MLPredictionAgent(Agent):
         self.labels = []
 
 
+
 class QLearningAgent(Agent):
-    def __init__(self, learning_rate=0.1, discount_factor=0.95, exploration_rate=0.2):
+    def __init__(self, learning_rate=0.1, discount_factor=0.95, exploration_rate=0.2, 
+                 history_states=5, split = 3, disagree =-3, steal = -5, max_score = 5):
         super().__init__(name="Q-Learning Agent")
         self.q_table = {}  # Q-table initialized as a dictionary for state-action pairs
-        self.learning_rate = learning_rate # Alpha
-        self.discount_factor = discount_factor # Gamma
-        self.exploration_rate = exploration_rate # Epsilon
+        self.learning_rate = learning_rate  # Alpha
+        self.discount_factor = discount_factor  # Gamma
+        self.exploration_rate = exploration_rate  # Epsilon
+        self.learning_rate = learning_rate  # Alpha
+        self.discount_factor = discount_factor  # Gamma
+        self.exploration_rate = exploration_rate  # Epsilon
         self.last_state = None
         self.last_action = None
+        self.history_states = history_states
+        self.split_score = split  # Reward for splitting
+        self.disagree_score = disagree  # Penalty for disagreeing
+        self.steal_score = steal  # Penalty for stealing
+        self.max_score = max_score  # Maximum score for winning
+ 
+    def get_state(self, history_states):
+        """Encodes the last (history_states) opponent moves as the current state."""
+        if len(self.opponent_history) >= history_states:
+            return tuple(self.opponent_history[-history_states:])
+        else:
+            # If there are fewer than history_states moves, pad with splits (0)
+            return tuple([0] * (history_states - len(self.opponent_history)) + self.opponent_history)
+ 
+    def choose(self):
+        """Chooses an action based on the Q-learning policy (epsilon-greedy)."""
+        state = self.get_state(self.history_states)
+ 
+        # Initialize Q-values for this state if not present
+        if state not in self.q_table:
+            self.q_table[state] = [0, 0]  # Initialize Q-values for actions: [split, steal]
+ 
+        # Epsilon-greedy action selection
+        if random.random() < self.exploration_rate:
+            action = random.choice([0, 1])  # Explore: choose random action
+        else:
+            action = 0 if self.q_table[state][0] >= self.q_table[state][1] else 1  # Exploit: choose best action
+ 
+        # Save state and action for learning update
+        self.last_state = state
+        self.last_action = action
+ 
+        return action
+ 
+    def record_move(self, choice, opponent_choice):
+        """Records the agent's own choice and the opponent's last choice,
+           and updates Q-values immediately."""
+        super().record_move(choice, opponent_choice)
+        reward, _ = evaluate_choices(choice, opponent_choice, 
+                                     self.split_score, self.disagree_score, self.steal_score, self.max_score)  # Get reward for the action
+ 
+        if self.last_state is not None and self.last_action is not None:
+            # Get the maximum Q-value for the next state
+            next_state = self.get_state(self.history_states)
+            if next_state not in self.q_table:
+                self.q_table[next_state] = [0, 0]  # Initialize Q-values for actions: [split, steal]
+            max_next_q = max(self.q_table[next_state])
+ 
+            # Update Q-value using the Q-learning formula
+            old_value = self.q_table[self.last_state][self.last_action]
+            self.q_table[self.last_state][self.last_action] = (
+                old_value + self.learning_rate * (reward + self.discount_factor * max_next_q - old_value)
+            )
+ 
+        # Update last state and action
+        self.last_state = self.get_state(self.history_states)
+        self.last_action = choice
+ 
+    def clear_memory(self):
+        super().clear_memory()
+        self.q_table = {}
+        self.last_action = None
+        self.last_state = None
