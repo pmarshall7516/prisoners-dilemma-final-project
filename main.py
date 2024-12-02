@@ -395,7 +395,13 @@ def plot_agent_metrics(df):
     # Create a bar chart for each metric
     for metric in metrics_to_plot:
         plt.figure(figsize=(10, 6))
-        sns.barplot(x='Agent', y=metric, data=df, palette="viridis")
+        
+        # Use the x variable as hue for coloring
+        sns.barplot(x='Agent', y=metric, data=df, hue='Agent', palette="viridis", dodge=False)
+        
+        # Suppress the legend as 'hue' is used only for coloring
+        plt.legend([], [], frameon=False)
+        
         plt.title(f"Comparison of Agents by {metric.replace('_', ' ')}", fontsize=14)
         plt.ylabel(metric.replace('_', ' '), fontsize=12)
         plt.xlabel("Agent", fontsize=12)
