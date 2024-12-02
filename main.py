@@ -7,6 +7,10 @@ import pandas as pd
 from agent import (evaluate_choices, MAJOR_ITERATIONS, Agent, UserAgent, RandomAgent, AlwaysSplitAgent, 
                 AlwaysStealAgent, TitForTatAgent, RhythmicAgent , ProbabilisticAgent,
                 PredictionAgent, GrudgeAgent, MLPredictionAgent, QLearningAgent)
+
+import matplotlib.pyplot as plt
+import seaborn as sns
+import os
     
 def select_agent():
     """Displays a menu for selecting an agent and returns an instance of the chosen agent."""
@@ -92,7 +96,6 @@ def user_game(iterations=10):
     print(f"Final User Score: {user_agent.score}")
     print(f"Final Opponent Score: {opponent.score}\n")
 
-import json
 
 def parse_simulation_config(json_path):
     """
@@ -171,7 +174,7 @@ def major_simulation(iterations=MAJOR_ITERATIONS, all=True, parameter_file = "pa
             MLPredictionAgent(history_states=ml_agent_params["history_states"]),
             QLearningAgent(learning_rate = q_agent_params["learning_rate"], discount_factor = q_agent_params["discount_factor"], 
                            exploration_rate= q_agent_params["exploration_rate"], history_states= q_agent_params["history_states"],
-                           split = split_score, disagree =disagree_score, steal = steal_score, max = max_score)
+                           split = split_score, disagree =disagree_score, steal = steal_score, max_score = max_score)
         ]
     else:
         agents = [
@@ -183,7 +186,7 @@ def major_simulation(iterations=MAJOR_ITERATIONS, all=True, parameter_file = "pa
             MLPredictionAgent(history_states=ml_agent_params["history_states"]),
             QLearningAgent(learning_rate = q_agent_params["learning_rate"], discount_factor = q_agent_params["discount_factor"], 
                            exploration_rate= q_agent_params["exploration_rate"], history_states= q_agent_params["history_states"],
-                           split = split_score, disagree =disagree_score, steal = steal_score, max = max_score)
+                           split = split_score, disagree =disagree_score, steal = steal_score, max_score = max_score)
         ]
         # agents = [
         #     AlwaysStealAgent(),
@@ -306,6 +309,9 @@ def major_simulation(iterations=MAJOR_ITERATIONS, all=True, parameter_file = "pa
 
     print(f"Worst Agent by Average Score: {bottom_average_score_agent['Agent']} - Score: {bottom_average_score_agent['Average_Score']:.2f}")
 
+    plot_agent_metrics(agent_df)
+
+
 def minor_simulation(iterations=10):
     """Simulates a prisoner's dilemma game for a set number 
     of iterations between two agents. Shows the steps"""
@@ -377,6 +383,31 @@ def main():
             except ValueError:
                 print("Invalid input. Using default of 10 iterations.")
                 minor_simulation()
+
+
+
+def plot_agent_metrics(df):
+    metrics_to_plot = ['Average_Score', 'Win_Percentage', 'Average_Score_Difference', 'Best_Partner_Score']
+
+    # Set the plot style
+    sns.set_theme(style="whitegrid")
+
+    # Create a bar chart for each metric
+    for metric in metrics_to_plot:
+        plt.figure(figsize=(10, 6))
+        sns.barplot(x='Agent', y=metric, data=df, palette="viridis")
+        plt.title(f"Comparison of Agents by {metric.replace('_', ' ')}", fontsize=14)
+        plt.ylabel(metric.replace('_', ' '), fontsize=12)
+        plt.xlabel("Agent", fontsize=12)
+        plt.xticks(rotation=45)
+        plt.tight_layout()
+
+        # Save the plot
+        output_dir = "plots"
+        os.makedirs(output_dir, exist_ok=True)
+        plot_filename = os.path.join(output_dir, f"{metric}.png")
+        plt.savefig(plot_filename, dpi=300)
+        plt.close()
 
 if __name__ == "__main__":
     main()
