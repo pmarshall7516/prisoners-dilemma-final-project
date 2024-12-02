@@ -126,10 +126,12 @@ def parse_simulation_config(json_path):
     
     # Extract reward values
     rewards = data.get("simulation", {}).get("scores", {})
+    itter = data.get("simulation", {}).get("max_iterations", {})
 
     return {
         "agents": agents_with_hyperparameters,
-        "rewards": rewards
+        "rewards": rewards,
+        "iterations": itter
     }
 
 
@@ -141,6 +143,7 @@ def major_simulation(iterations=MAJOR_ITERATIONS, all=True, parameter_file = "pa
     hyperparameters = parse_simulation_config(parameter_file)
     agent_params = hyperparameters.get("agents", {})
     rewards = hyperparameters.get("rewards", {})
+    iterations = hyperparameters.get("iterations")
 
     
 
