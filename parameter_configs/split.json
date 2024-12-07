@@ -1,0 +1,83 @@
+{
+    "agents": [
+      {
+        "type": "UserAgent",
+        "name": "User Agent",
+        "hyperparameters": {}
+      },
+      {
+        "type": "RandomAgent",
+        "name": "Random Agent",
+        "hyperparameters": {}
+      },
+      {
+        "type": "AlwaysSplitAgent",
+        "name": "Always Split Agent",
+        "hyperparameters": {}
+      },
+      {
+        "type": "AlwaysStealAgent",
+        "name": "Always Steal Agent",
+        "hyperparameters": {}
+      },
+      {
+        "type": "TitForTatAgent",
+        "name": "Tit-for-Tat Agent",
+        "hyperparameters": {}
+      },
+      {
+        "type": "RhythmicAgent",
+        "name": "Rhythmic Agent",
+        "hyperparameters": {
+          "sequence_num": 3,
+          "majority_split": true
+        }
+      },
+      {
+        "type": "ProbabilisticAgent",
+        "name": "Probabilistic Agent",
+        "hyperparameters": {
+          "probability": 0.75
+        }
+      },
+      {
+        "type": "PredictionAgent",
+        "name": "Prediction Agent",
+        "hyperparameters": {
+          "pattern_length": 3
+        }
+      },
+      {
+        "type": "GrudgeAgent",
+        "name": "Grudge Agent",
+        "hyperparameters": {}
+      },
+      {
+        "type": "MLPredictionAgent",
+        "name": "ML Prediction Agent",
+        "hyperparameters": {
+          "history_states": 4
+        }
+      },
+      {
+        "type": "QLearningAgent",
+        "name": "Q-Learning Agent",
+        "hyperparameters": {
+          "learning_rate": 0.1,
+          "discount_factor": 0.95,
+          "exploration_rate": 0.2,
+          "history_states": 5
+        }
+      }
+    ],
+    "simulation": {
+      "max_iterations": 100,
+      "scores": {
+        "split_score": 5,
+        "disagree_score": -1,
+        "both_steal_score": -5,
+        "max_score": 3
+      }
+    }
+  }
+  

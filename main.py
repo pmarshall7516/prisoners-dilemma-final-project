@@ -57,10 +57,6 @@ def select_agent():
         except ValueError:
             print("Invalid input. Please enter a number 1-5.")
 
-
-
-
-
 def user_game(iterations=10):
     """Simulates a prisoner's dilemma game for a set number of iterations 
     between a user-controlled agent and an opponent agent."""
@@ -134,10 +130,15 @@ def parse_simulation_config(json_path):
         "iterations": itter
     }
 
-
-
     
-def major_simulation(iterations=MAJOR_ITERATIONS, all=True, parameter_file = "parameter_configs/default.json"):
+def major_simulation(iterations=MAJOR_ITERATIONS, all=True, parameter_file = "parameter_configs/balanced.json"):
+    """
+    Conducts a large-scale round robin simulation with multiple agents and records their performance.
+    Args:
+        iterations (int): Number of iterations for each agent pair. Defaults to MAJOR_ITERATIONS.
+        all (bool): Whether to include all agents in the simulation. Defaults to True.
+        parameter_file (str): Path to the parameter configuration JSON file. Defaults to "parameter_configs/balanced.json".
+    """
 
     # Parse hyperparameters from the JSON file
     hyperparameters = parse_simulation_config(parameter_file)
@@ -148,13 +149,13 @@ def major_simulation(iterations=MAJOR_ITERATIONS, all=True, parameter_file = "pa
     
 
     # Initialize hyper parameters
-    #rewards
+    # Rewards
     split_score = rewards["split_score"]
     disagree_score = rewards["disagree_score"]
     steal_score = rewards["both_steal_score"]
     max_score = rewards["max_score"]
 
-    #agents
+    # Agents
     prob_agent_params = agent_params["ProbabilisticAgent"]
     pred_agent_params = agent_params["PredictionAgent"]
     rhythm_agent_params = agent_params["RhythmicAgent"]
@@ -164,7 +165,7 @@ def major_simulation(iterations=MAJOR_ITERATIONS, all=True, parameter_file = "pa
 
 
     # Instantiate each agent type
-    if all:
+    if all: # Use all agents, including always split, always steal, and random
         agents = [
             RandomAgent(),
             AlwaysSplitAgent(),
@@ -179,7 +180,7 @@ def major_simulation(iterations=MAJOR_ITERATIONS, all=True, parameter_file = "pa
                            exploration_rate= q_agent_params["exploration_rate"], history_states= q_agent_params["history_states"],
                            split = split_score, disagree =disagree_score, steal = steal_score, max_score = max_score)
         ]
-    else:
+    else: # Only Algorithmic and Complex agents
         agents = [
             TitForTatAgent(),
             RhythmicAgent(sequence_num=rhythm_agent_params["sequence_num"], majority_split=rhythm_agent_params["majority_split"]),
@@ -191,12 +192,6 @@ def major_simulation(iterations=MAJOR_ITERATIONS, all=True, parameter_file = "pa
                            exploration_rate= q_agent_params["exploration_rate"], history_states= q_agent_params["history_states"],
                            split = split_score, disagree =disagree_score, steal = steal_score, max_score = max_score)
         ]
-        # agents = [
-        #     AlwaysStealAgent(),
-        #     TitForTatAgent(),
-        #     GrudgeAgent(),
-        # ]
-        
 
     print(f"Running Simulation for {iterations} Iterations...")
 
@@ -210,6 +205,8 @@ def major_simulation(iterations=MAJOR_ITERATIONS, all=True, parameter_file = "pa
         opponent_score_differences = []
         best_partner_score = 0
         best_partner = None
+        a1_cooperations = 0
+        total_a1_rounds = 0
 
         for a2 in agents:  # Opposing agent (including self)
             opponent_round_score = 0
@@ -226,14 +223,21 @@ def major_simulation(iterations=MAJOR_ITERATIONS, all=True, parameter_file = "pa
                     c2 = a2.choose()
                     # print(f"{a1.name}: {c1} against {a2.name}: {c2}")
 
+                    if c1 == 0:
+                        a1_cooperations += 1
+
+                    # Update both agent's memory
                     a1.record_move(c1, c2)
                     a2.record_move(c2, c1)
 
                     s1, s2 = evaluate_choices(c1, c2, split_score, disagree_score, steal_score, max_score)
                     # print(f"{a1.name}: {s1}, {a2.name}: {s2}")
 
+                    # Calculate round by round score
                     main_round_score += s1
                     opponent_round_score += s2
+                    total_a1_rounds += 1
+                    
                 
                 # Update scores and metrics after each matchup
                 a1.score += main_round_score
@@ -263,7 +267,6 @@ def major_simulation(iterations=MAJOR_ITERATIONS, all=True, parameter_file = "pa
                     "Combined_Score": combined_score
                 })
 
-            
 
         # Calculate average metrics for the agent
         average_score = a1.score / len(agents)  # Include self-match in the average
@@ -276,7 +279,8 @@ def major_simulation(iterations=MAJOR_ITERATIONS, all=True, parameter_file = "pa
             "Win_Percentage": win_percentage,
             "Average_Score_Difference": average_score_difference,
             "Best_Partner": best_partner,
-            "Best_Partner_Score": best_partner_score
+            "Best_Partner_Score": best_partner_score,
+            "Cooperation_Rate": a1_cooperations / total_a1_rounds
         })
         
         # print(f"{a1.name} - Average Score: {average_score:.2f}, "
@@ -303,6 +307,7 @@ def major_simulation(iterations=MAJOR_ITERATIONS, all=True, parameter_file = "pa
     top_win_rate_agent = agent_df.loc[agent_df['Win_Percentage'].idxmax()]
     bottom_average_score_agent = agent_df.loc[agent_df['Average_Score'].idxmin()]
 
+    # Simulation Results sim print output
     print("\nResults Summary:")
     print(f"Top Agent by Average Score: {top_average_score_agent['Agent']} - Score: {top_average_score_agent['Average_Score']:.2f}")
     print(f"Top Agent by Win Percentage: {top_win_rate_agent['Agent']} - Win Percentage: {top_win_rate_agent['Win_Percentage']:.2f}%")
@@ -312,12 +317,16 @@ def major_simulation(iterations=MAJOR_ITERATIONS, all=True, parameter_file = "pa
 
     print(f"Worst Agent by Average Score: {bottom_average_score_agent['Agent']} - Score: {bottom_average_score_agent['Average_Score']:.2f}")
 
+    # Plot the metrics
     plot_agent_metrics(agent_df)
 
 
 def minor_simulation(iterations=10):
-    """Simulates a prisoner's dilemma game for a set number 
-    of iterations between two agents. Shows the steps"""
+    """
+    Conducts a smaller simulation between two user-selected agents and shows step-by-step results.
+    Args:
+        iterations (int): Number of rounds to simulate. Defaults to 10.
+    """
 
     print("First Agent Selection...")
     a1 = select_agent()
@@ -335,6 +344,7 @@ def minor_simulation(iterations=10):
             c1 = a1.choose()
             c2 = a2.choose()
 
+            # Update both agent's memory
             a1.record_move(c1, c2)
             a2.record_move(c2, c1)
 
@@ -342,6 +352,7 @@ def minor_simulation(iterations=10):
             print(f"{a1.name} chose: {'Split' if c1 == 0 else 'Steal'}")
             print(f"{a2.name} chose: {'Split' if c2 == 0 else 'Steal'}")
 
+            # Calculate rewards based on choices
             s1, s2 = evaluate_choices(c1, c2)
 
             a1.score += s1
@@ -358,11 +369,21 @@ def minor_simulation(iterations=10):
     print(f"Final {a2.name}'s Score: {a2.score}\n")
 
 def main():
+    """
+    Entry point for the simulation. Handles user input for different simulation modes.
+
+        -u: starts a game with user agent against selected agent
+        -s: runs major round robin simulation (just algorithmic and complex agents)
+            -a: directly follows -s flag and runs with simple agents as well
+            * follow all flags with parameter file name (no parameter_configs/) to use specific parameter setups
+            * EX. python main.py -s -a balanced.json
+        -t: runs minor simulation which prompts the user to selects 2 agents and the number of iterations
+            and watch the simulation of the iterated prisoner's dilemma game            
+    """
     if len(sys.argv) < 2:
         major_simulation(MAJOR_ITERATIONS, True)
     else: 
         mode = sys.argv[1]
-        param_file = sys.argv[2] if len(sys.argv) > 2 else "parameter_configs/default.json"
         
         if mode == "-u":
             try:
@@ -373,6 +394,7 @@ def main():
                 user_game()
         elif mode == "-s":
             if len(sys.argv) > 2:
+                param_file = "parameter_configs/"+sys.argv[-1] if sys.argv[-1] != None else "parameter_configs/balanced.json"
                 if sys.argv[2] == '-a':
                     major_simulation(MAJOR_ITERATIONS, True, parameter_file=param_file)
                 else:
@@ -390,6 +412,11 @@ def main():
 
 
 def plot_agent_metrics(df):
+    """
+    Plots agent metrics as bar charts and saves the visualizations.
+    Args:
+        df (pd.DataFrame): DataFrame containing agent metrics.
+    """
     metrics_to_plot = ['Average_Score', 'Win_Percentage', 'Average_Score_Difference', 'Best_Partner_Score']
 
     # Set the plot style

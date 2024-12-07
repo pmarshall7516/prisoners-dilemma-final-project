@@ -1,0 +1,11 @@
+Agent,Average_Score,Win_Percentage,Average_Score_Difference,Best_Partner,Best_Partner_Score,Cooperation_Rate
+Random Agent,6.2,50.0,5.6,Always Split Agent,404,0.504
+Always Split Agent,87.6,0.0,-283.2,Always Split Agent,600,1.0
+Always Steal Agent,-82.0,90.0,334.4,Always Split Agent,200,0.0
+Tit-for-Tat Agent,109.6,0.0,-1.6,Always Split Agent,600,0.699
+Rhythmic Agent,32.6,30.0,-96.8,Always Split Agent,468,0.67
+Probabilistic Agent,39.0,50.0,-157.6,Always Split Agent,512,0.752
+Prediction Agent,95.8,0.0,-39.2,Always Split Agent,600,0.757
+Grudge Agent,112.4,50.0,222.4,Always Split Agent,600,0.415
+ML Prediction Agent,-6.8,50.0,36.8,Always Split Agent,424,0.459
+Q-Learning Agent,62.8,50.0,-99.2,Always Split Agent,544,0.727

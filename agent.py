@@ -2,11 +2,24 @@ import random
 from sklearn.linear_model import LogisticRegression
 import numpy as np
 
-
-MAJOR_ITERATIONS = 200
+# Default iterations value
+MAJOR_ITERATIONS = 100
 
 # Helper Methods
 def evaluate_choices(c1, c2, split_score, disagree_score, both_steal_score, max_score):
+    """
+    Evaluates the outcomes of choices in the Prisoner's Dilemma game.
+    
+    Parameters:
+        c1, c2 (int): Choices made by player 1 and player 2 (0 = split, 1 = steal).
+        split_score (int): Reward when both players split.
+        disagree_score (int): Reward when one player splits and the other steals.
+        both_steal_score (int): Penalty when both players steal.
+        max_score (int): Maximum reward for successfully stealing when the opponent splits.
+
+    Returns:
+        Tuple[int, int]: Scores for player 1 and player 2.
+    """
     if c1 == 0 and c2 == 0:  # Both split
         return split_score, split_score
     elif c1 == 1 and c2 == 0:  # Agent 1 steals, Agent 2 splits
@@ -17,6 +30,9 @@ def evaluate_choices(c1, c2, split_score, disagree_score, both_steal_score, max_
         return both_steal_score, both_steal_score
 
 class Agent:
+    """
+    Base class for agents participating in the Prisoner's Dilemma game.
+    """
     def __init__(self, name="Agent"):
         self.name = name
         self.score = 0
@@ -40,10 +56,14 @@ class Agent:
         self.opponent_history.append(opponent_choice)
 
     def clear_memory(self):
+        """Clears the agent's history of moves."""
         self.opponent_history = []
         self.own_history = []
 
 class UserAgent(Agent):
+    """
+    Allows a human user to manually select actions in the game.
+    """
     def __init__(self):
         super().__init__(name="User Agent")
 
@@ -60,6 +80,9 @@ class UserAgent(Agent):
                 print("Invalid input. Please enter a number (0 or 1).")
 
 class RandomAgent(Agent):
+    """
+    Agent that makes random decisions between split (0) and steal (1).
+    """
     def __init__(self):
         super().__init__(name="Random Agent")
 
@@ -72,6 +95,9 @@ class RandomAgent(Agent):
         super().clear_memory()
 
 class AlwaysSplitAgent(Agent):
+    """
+    Agent that always chooses to split.
+    """
     def __init__(self):
         super().__init__(name="Always Split Agent")
 
@@ -84,6 +110,9 @@ class AlwaysSplitAgent(Agent):
         super().clear_memory()
 
 class AlwaysStealAgent(Agent):
+    """
+    Agent that always chooses to steal.
+    """
     def __init__(self):
         super().__init__(name="Always Steal Agent")
 
@@ -96,6 +125,9 @@ class AlwaysStealAgent(Agent):
         super().clear_memory()
 
 class TitForTatAgent(Agent):
+    """
+    Agent that starts by cooperating and then mimics the opponent's last move.
+    """
     def __init__(self):
         super().__init__(name="Tit-for-Tat Agent")
 
@@ -108,6 +140,9 @@ class TitForTatAgent(Agent):
         super().clear_memory()
 
 class RhythmicAgent(Agent):
+    """
+    Agent that alternates between specific sequences of splits and steals.
+    """
     def __init__(self, sequence_num=3, majority_split=True):
         super().__init__(name="Rhythmic Agent")
         self.sequence_num = sequence_num
@@ -128,6 +163,9 @@ class RhythmicAgent(Agent):
         self.count = 1
 
 class ProbabilisticAgent(Agent):
+    """
+    Agent that chooses split or steal with a set probability.
+    """
     def __init__(self, prob=0.75):
         super().__init__(name="Probabilistic Agent")
         self.probability = prob
@@ -140,6 +178,10 @@ class ProbabilisticAgent(Agent):
         super().clear_memory()
 
 class PredictionAgent(Agent):
+    """
+    Agent that predicts the opponent's next move based on observed patterns 
+    in the opponent's recent history.
+    """
     def __init__(self, pattern_length=2):
         super().__init__(name="Prediction Agent")
         self.pattern_length = pattern_length
@@ -175,6 +217,10 @@ class PredictionAgent(Agent):
         super().clear_memory()
 
 class GrudgeAgent(Agent):
+    """
+    Agent that starts by cooperating but holds a grudge and steals for the 
+    rest of the game if the opponent ever steals.
+    """
     def __init__(self):
         super().__init__(name="Grudge Agent")
         self.grudge = False
@@ -191,8 +237,11 @@ class GrudgeAgent(Agent):
         self.grudge = False
     
 
-
 class MLPredictionAgent(Agent):
+    """
+    Agent that uses a logistic regression model to predict the opponent's next move 
+    based on a history of both players' actions.
+    """
     def __init__(self, history_states=4):
         super().__init__(name="ML Prediction Agent")
         self.model = LogisticRegression()
@@ -240,6 +289,7 @@ class MLPredictionAgent(Agent):
             return random.choice([0, 1])
 
     def clear_memory(self):
+        """Resets the agent's memory and retrains the model."""
         super().clear_memory()
         self.model = LogisticRegression()
         self.features = []
@@ -248,6 +298,9 @@ class MLPredictionAgent(Agent):
 
 
 class QLearningAgent(Agent):
+    """
+    Agent that uses Q-learning to learn an optimal strategy over repeated games.
+    """
     def __init__(self, learning_rate=0.1, discount_factor=0.95, exploration_rate=0.2, 
                  history_states=5, split = 3, disagree =-3, steal = -5, max_score = 5):
         super().__init__(name="Q-Learning Agent")
@@ -319,6 +372,7 @@ class QLearningAgent(Agent):
         self.last_action = choice
  
     def clear_memory(self):
+        """Resets the Q-table and learning variables."""
         super().clear_memory()
         self.q_table = {}
         self.last_action = None
