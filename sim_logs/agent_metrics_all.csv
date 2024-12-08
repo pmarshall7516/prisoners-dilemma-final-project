@@ -1,11 +1,11 @@
-Agent,Average_Score,Win_Percentage,Average_Score_Difference,Best_Partner,Best_Partner_Score,Cooperation_Rate
-Random Agent,6.2,50.0,5.6,Always Split Agent,404,0.504
-Always Split Agent,87.6,0.0,-283.2,Always Split Agent,600,1.0
-Always Steal Agent,-82.0,90.0,334.4,Always Split Agent,200,0.0
-Tit-for-Tat Agent,109.6,0.0,-1.6,Always Split Agent,600,0.699
-Rhythmic Agent,32.6,30.0,-96.8,Always Split Agent,468,0.67
-Probabilistic Agent,39.0,50.0,-157.6,Always Split Agent,512,0.752
-Prediction Agent,95.8,0.0,-39.2,Always Split Agent,600,0.757
-Grudge Agent,112.4,50.0,222.4,Always Split Agent,600,0.415
-ML Prediction Agent,-6.8,50.0,36.8,Always Split Agent,424,0.459
-Q-Learning Agent,62.8,50.0,-99.2,Always Split Agent,544,0.727
+Agent,Average_Score,Win_Percentage,Average_Score_Difference,Best_Partner,Best_Collective_Score,Average_Collective_Score,Cooperation_Rate
+Random Agent,-22.2,50.0,-20.0,Always Split Agent,380,-0.244,0.495
+Always Split Agent,131.4,0.0,-224.8,Always Split Agent,600,4.876,1.0
+Always Steal Agent,-69.0,90.0,344.8,Always Split Agent,200,-4.828,0.0
+Tit-for-Tat Agent,114.0,0.0,-1.6,Always Split Agent,600,2.296,0.705
+Rhythmic Agent,37.2,40.0,-89.6,Always Split Agent,468,1.64,0.67
+Probabilistic Agent,41.6,20.0,-156.8,Always Split Agent,476,2.4,0.755
+Prediction Agent,117.4,20.0,-20.0,Always Split Agent,600,2.548,0.761
+Grudge Agent,124.8,50.0,230.4,Always Split Agent,600,0.192,0.418
+ML Prediction Agent,-6.2,60.0,60.0,Always Split Agent,400,-0.724,0.438
+Q-Learning Agent,73.8,60.0,-72.8,Always Split Agent,556,2.204,0.697

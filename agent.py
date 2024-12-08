@@ -36,6 +36,7 @@ class Agent:
     def __init__(self, name="Agent"):
         self.name = name
         self.score = 0
+        self.collective_score = 0
         self.wins = 0
         self.conquered = []
         self.own_history = []

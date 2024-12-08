@@ -246,6 +246,7 @@ def major_simulation(iterations=MAJOR_ITERATIONS, all=True, parameter_file = "pa
 
                 # Calculate the combined score for the pairing
                 combined_score = main_round_score + opponent_round_score
+                a1.collective_score += combined_score
                 if combined_score > highest_combined_score:
                     highest_combined_score = combined_score
                     top_pair = (a1, a2)
@@ -279,7 +280,8 @@ def major_simulation(iterations=MAJOR_ITERATIONS, all=True, parameter_file = "pa
             "Win_Percentage": win_percentage,
             "Average_Score_Difference": average_score_difference,
             "Best_Partner": best_partner,
-            "Best_Partner_Score": best_partner_score,
+            "Best_Collective_Score": best_partner_score,
+            "Average_Collective_Score": a1.collective_score / total_a1_rounds,
             "Cooperation_Rate": a1_cooperations / total_a1_rounds
         })
         
@@ -417,7 +419,8 @@ def plot_agent_metrics(df):
     Args:
         df (pd.DataFrame): DataFrame containing agent metrics.
     """
-    metrics_to_plot = ['Average_Score', 'Win_Percentage', 'Average_Score_Difference', 'Best_Partner_Score']
+    metrics_to_plot = ['Average_Score', 'Win_Percentage', 'Average_Score_Difference', 
+                       'Best_Collective_Score', 'Average_Collective_Score', 'Cooperation_Rate']
 
     # Set the plot style
     sns.set_theme(style="whitegrid")
