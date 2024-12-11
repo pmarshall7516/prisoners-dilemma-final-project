@@ -1,5 +1,17 @@
 #! /usr/bin/env python
 
+"""
+Patrick Marshall and Christian Basso
+CSC 4631
+
+Contains the main simulation loops for a major simulation (used to generate our data), 
+a minor simulation (to visualize two particular agents play), and a user simulation so 
+the user can play against our agents.
+
+Also contains the data storage and plot visualization functions
+utilizing numpy, pandas, and matplotlib
+"""
+
 import sys
 import json
 import time

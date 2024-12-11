@@ -71,7 +71,7 @@
       }
     ],
     "simulation": {
-      "max_iterations": 100,
+      "max_iterations": 400,
       "scores": {
         "split_score": 3,
         "disagree_score": -3,

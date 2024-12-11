@@ -1,3 +1,14 @@
+"""
+Patrick Marshall and Christian Basso
+CSC 4631
+
+This file contains all of the classes for our different agents. This includes all attributes and 
+methods needed in order to implement their decision logic as well as resetting them for new game
+loops.
+
+Also contains score evaluation method and default iteration value.
+"""
+
 import random
 from sklearn.linear_model import LogisticRegression
 import numpy as np
